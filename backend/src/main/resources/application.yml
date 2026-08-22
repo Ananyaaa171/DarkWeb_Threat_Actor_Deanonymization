@@ -8,18 +8,20 @@ spring:
     name: dark-web-deanonymizer-backend
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:deanonymizer_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
 
   jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
     hibernate:
-      ddl-auto: none
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    defer-datasource-initialization: true
     show-sql: false
     properties:
       hibernate:
@@ -28,6 +30,11 @@ spring:
           lob:
             non_contextual_creation: true
     open-in-view: false
+
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
 
   jackson:
     serialization:

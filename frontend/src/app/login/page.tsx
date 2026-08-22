@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { api } from '@/services/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,19 +11,39 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 400);
+    try {
+      const res = await api.login({ username: email, password });
+      if (res && res.token && typeof window !== 'undefined') {
+        localStorage.setItem('dwd_auth_token', res.token);
+        localStorage.setItem('dwd_auth_user', JSON.stringify(res));
+      }
+    } catch (err) {
+      console.warn('Backend login endpoint unavailable, using offline session:', err);
+    } finally {
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 300);
+    }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoLogin = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 200);
+    try {
+      const res = await api.login({ username: 'analyst.op74@dwd-soc.internal', password: 'demo' });
+      if (res && res.token && typeof window !== 'undefined') {
+        localStorage.setItem('dwd_auth_token', res.token);
+        localStorage.setItem('dwd_auth_user', JSON.stringify(res));
+      }
+    } catch (err) {
+      console.warn('Backend login unavailable:', err);
+    } finally {
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 200);
+    }
   };
 
   return (

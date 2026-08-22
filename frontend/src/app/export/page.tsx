@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { api } from '@/services/api';
 
-export default function ExportPage() {
+function ExportContent() {
+  const searchParams = useSearchParams();
+  const [actorId, setActorId] = useState('2bee3f4c-1923-40da-a2e9-78b9a1e9eb79');
   const [format, setFormat] = useState<'pdf' | 'csv' | 'json'>('pdf');
   const [includeSummary, setIncludeSummary] = useState(true);
   const [includeGraph, setIncludeGraph] = useState(true);
@@ -11,16 +15,45 @@ export default function ExportPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
-  const handleGenerateExport = () => {
+  useEffect(() => {
+    const paramId = searchParams.get('actorId');
+    if (paramId) {
+      setActorId(paramId);
+    }
+  }, [searchParams]);
+
+  const handleGenerateExport = async () => {
     setIsExporting(true);
     setDownloadSuccess(false);
+
+    try {
+      const exportUrl = api.getExportUrl(format, actorId);
+      const res = await fetch(exportUrl);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const ext = format === 'pdf' ? 'txt' : format;
+        a.download = `DWD_Dossier_${actorId.slice(0, 8)}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        setIsExporting(false);
+        setDownloadSuccess(true);
+        return;
+      }
+    } catch (err) {
+      console.warn('Live backend export unavailable, generating structured client dossier:', err);
+    }
 
     setTimeout(() => {
       setIsExporting(false);
       setDownloadSuccess(true);
 
       // Trigger client-side demonstration download
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const timestamp = '2026-08-22-12-00-00';
       let blob: Blob;
       let filename: string;
 
@@ -29,7 +62,7 @@ export default function ExportPage() {
           export_version: '1.0',
           stix_version: '2.1',
           classification: 'TLP:AMBER+STRICT',
-          generated_at: new Date().toISOString(),
+          generated_at: '2026-08-22T12:00:00Z',
           case_id: 'SIH-2026-LB-884A',
           canonical_actor: {
             name: 'LockBit 3.0 Syndicate',
@@ -60,7 +93,7 @@ export default function ExportPage() {
         filename = `DWD_Indicators_LockBit_${timestamp}.csv`;
       } else {
         // PDF summary text
-        const pdfText = `=======================================================\nDARK WEB DEANONYMIZER - COURT-READY DOSSIER REPORT\nCONFIDENTIAL // TLP:AMBER+STRICT\n=======================================================\nOperation: Dark Web Threat Actor Deanonymization\nCase Ref: SIH-2026-LB-884A\nGenerated: ${new Date().toISOString()}\n\nTARGET ACTOR: LockBit 3.0 Syndicate\nOVERALL ATTRIBUTION CONFIDENCE: 89.50% (HIGH-CONFIDENCE LINKAGE)\n\nFACTOR BREAKDOWN (Deterministic Formula):\n- 35% Identifiers Overlap: 33.25 pts (PGP Subkey 0x4A72B5C1 confirmed)\n- 25% Stylometric Similarity: 21.75 pts (0.87 Cosine NLP alignment)\n- 20% Behavioral Alignment: 17.50 pts (UTC+3 timezone matching)\n- 20% Infrastructure Overlap: 17.00 pts (AS200651 Tor mirror)\n\nLINKED PERSONAS:\n- @bassterlord_xss (XSS.is Underground)\n- @basster_rampv2 (Ramp Forum)\n\nGEMINI AI FORENSIC REASONING:\nBased on multi-vector algorithmic analysis, there is an 89.50% confidence level that @bassterlord_xss and @basster_rampv2 represent the same physical operator.`;
+        const pdfText = `=======================================================\nDARK WEB DEANONYMIZER - COURT-READY DOSSIER REPORT\nCONFIDENTIAL // TLP:AMBER+STRICT\n=======================================================\nOperation: Dark Web Threat Actor Deanonymization\nCase Ref: SIH-2026-LB-884A\nGenerated: 2026-08-22T12:00:00Z\n\nTARGET ACTOR: LockBit 3.0 Syndicate\nOVERALL ATTRIBUTION CONFIDENCE: 89.50% (HIGH-CONFIDENCE LINKAGE)\n\nFACTOR BREAKDOWN (Deterministic Formula):\n- 35% Identifiers Overlap: 33.25 pts (PGP Subkey 0x4A72B5C1 confirmed)\n- 25% Stylometric Similarity: 21.75 pts (0.87 Cosine NLP alignment)\n- 20% Behavioral Alignment: 17.50 pts (UTC+3 timezone matching)\n- 20% Infrastructure Overlap: 17.00 pts (AS200651 Tor mirror)\n\nLINKED PERSONAS:\n- @bassterlord_xss (XSS.is Underground)\n- @basster_rampv2 (Ramp Forum)\n\nGEMINI AI FORENSIC REASONING:\nBased on multi-vector algorithmic analysis, there is an 89.50% confidence level that @bassterlord_xss and @basster_rampv2 represent the same physical operator.`;
         blob = new Blob([pdfText], { type: 'text/plain' });
         filename = `DWD_Executive_Dossier_LockBit_${timestamp}.txt`;
       }
@@ -408,5 +441,13 @@ export default function ExportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ExportPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-on-surface-variant font-data-mono">Loading Export Dossier Module...</div>}>
+      <ExportContent />
+    </Suspense>
   );
 }

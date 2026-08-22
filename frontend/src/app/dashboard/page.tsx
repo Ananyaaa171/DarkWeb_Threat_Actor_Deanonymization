@@ -86,6 +86,14 @@ export default function DashboardPage() {
   const router = useRouter();
   const [actors, setActors] = useState<ActorSummary[]>([]);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<{
+    totalThreatActors?: number;
+    trackedPersonas?: number;
+    activeInvestigations?: number;
+    highConfidenceLinkages?: number;
+    monitoredIdentifiers?: number;
+    activeInfrastructure?: number;
+  } | null>(null);
   const [quickQuery, setQuickQuery] = useState('');
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,16 +102,26 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         setIsLoading(true);
-        const actorsRes = await api.getActors({ size: 10 });
-        if (actorsRes && actorsRes.content && actorsRes.content.length > 0) {
-          setActors(actorsRes.content);
+        const [actorsRes, statsRes] = await Promise.allSettled([
+          api.getActors({ size: 10 }),
+          api.getDashboardStats(),
+        ]);
+
+        if (statsRes.status === 'fulfilled' && statsRes.value) {
+          setDashboardStats(statsRes.value);
+        }
+
+        if (actorsRes.status === 'fulfilled' && actorsRes.value && actorsRes.value.content && actorsRes.value.content.length > 0) {
+          setActors(actorsRes.value.content);
           setIsBackendConnected(true);
 
           // Load timeline from primary actor
-          const timelineRes = await api.getActorTimeline(actorsRes.content[0].id, { size: 5 });
-          if (timelineRes && timelineRes.content) {
-            setTimelineEvents(timelineRes.content);
-          }
+          try {
+            const timelineRes = await api.getActorTimeline(actorsRes.value.content[0].id, { size: 5 });
+            if (timelineRes && timelineRes.content) {
+              setTimelineEvents(timelineRes.content);
+            }
+          } catch (_) {}
         } else {
           // Fallback only if empty
           setActors(FALLBACK_ACTORS);
@@ -128,9 +146,9 @@ export default function DashboardPage() {
     }
   };
 
-  const totalActors = actors.length;
-  const totalPersonas = actors.reduce((acc, a) => acc + (a.personaCount || 0), 0);
-  const highConfidenceCount = actors.filter((a) => a.overallConfidenceScore >= 85).length;
+  const totalActors = dashboardStats?.totalThreatActors ?? actors.length;
+  const totalPersonas = dashboardStats?.trackedPersonas ?? actors.reduce((acc, a) => acc + (a.personaCount || 0), 0);
+  const highConfidenceCount = dashboardStats?.highConfidenceLinkages ?? actors.filter((a) => a.overallConfidenceScore >= 85).length;
 
   return (
     <div className="flex flex-col gap-6">

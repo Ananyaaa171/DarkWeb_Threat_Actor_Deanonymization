@@ -41,9 +41,36 @@ async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T>
 }
 
 export const api = {
+  // Auth
+  async login(credentials: { username: string; password?: string }): Promise<{
+    token: string;
+    username: string;
+    role: string;
+    unit: string;
+    classification: string;
+  }> {
+    return fetchJson('/api/v1/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
   // Health
   async getHealth(): Promise<{ status: string; service: string; aiArchitecture: any }> {
     return fetchJson('/api/v1/health');
+  },
+
+  // Dashboard Stats
+  async getDashboardStats(): Promise<{
+    totalThreatActors: number;
+    trackedPersonas: number;
+    activeInvestigations: number;
+    highConfidenceLinkages: number;
+    monitoredIdentifiers: number;
+    activeInfrastructure: number;
+    categoryDistribution: Record<string, number>;
+  }> {
+    return fetchJson('/api/v1/dashboard/stats');
   },
 
   // Actors
@@ -123,6 +150,10 @@ export const api = {
     return fetchJson(`/api/v1/actors/${actorId}/relationships`);
   },
 
+  async getActorGraph(actorId: string): Promise<RelationshipGraph> {
+    return fetchJson(`/api/v1/graph/actor/${actorId}`);
+  },
+
   // Linkages
   async getLinkage(id: string): Promise<LinkageAnalysis> {
     return fetchJson(`/api/v1/linkages/${id}`);
@@ -158,5 +189,10 @@ export const api = {
         includeAiExplanation: data.includeAiExplanation ?? true,
       }),
     });
+  },
+
+  // Export URLs
+  getExportUrl(format: 'pdf' | 'json' | 'csv', actorId: string): string {
+    return `${API_BASE_URL}/api/v1/export/${format}/${actorId}`;
   },
 };

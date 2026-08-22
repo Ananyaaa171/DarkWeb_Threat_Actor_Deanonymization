@@ -478,7 +478,7 @@ export default function ActorProfilePage() {
                 <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
               </Link>
               <Link
-                href={`/export`}
+                href={`/export?actorId=${actor.id}`}
                 className="btn-primary w-full justify-between px-3 py-2 text-xs font-label-caps"
               >
                 <div className="flex items-center gap-2">
