@@ -1,0 +1,44 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: dark-web-deanonymizer-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    open-in-view: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+# Google Gemini AI Configuration (Configurable via Environment Variables)
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model-name: ${GEMINI_MODEL_NAME:gemini-1.5-flash}
+  embedding-model: ${GEMINI_EMBEDDING_MODEL:text-embedding-004}
+
+# Platform CORS Configuration
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}

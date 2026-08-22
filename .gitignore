@@ -1,0 +1,28 @@
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Java / Spring Boot / Maven
+backend/target/
+backend/.mvn/
+backend/*.iml
+backend/.idea/
+backend/.project
+backend/.classpath
+backend/.settings/
+backend/application-local.yml
+
+# Environment & Secrets
+.env
+.env.local
+*.log
+
+# OS Metadata
+.DS_Store
+Thumbs.db

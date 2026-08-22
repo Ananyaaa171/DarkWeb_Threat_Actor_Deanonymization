@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Google Stitch SOC Design Tokens */
+  --surface-dim: #0b1326;
+  --surface: #0b1326;
+  --surface-container-lowest: #060e20;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f33;
+  --surface-container-high: #222a3d;
+  --surface-container-highest: #2d3449;
+  --surface-variant: #2d3449;
+  
+  --primary: #adc6ff;
+  --primary-container: #4d8eff;
+  --on-primary-container: #00285d;
+  --on-primary: #002e6a;
+  
+  --secondary: #b7c8e1;
+  --secondary-container: #3a4a5f;
+  --on-secondary-container: #a9bad3;
+  
+  --tertiary: #ffb786;
+  --tertiary-container: #df7412;
+  
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  
+  --outline: #8c909f;
+  --outline-variant: #424754;
+  --on-surface: #dae2fd;
+  --on-surface-variant: #c2c6d6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background-color: #0b1326;
+  color: #dae2fd;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Material Symbols Outlined Configuration */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Stitch Card Panels */
+.card-panel {
+  background-color: #171f33;
+  border: 1px solid #424754;
+  border-radius: 0.25rem;
+}
+
+.card-panel-low {
+  background-color: #131b2e;
+  border: 1px solid #424754;
+  border-radius: 0.25rem;
+}
+
+.interactive-row:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #4d8eff;
+  color: #00285d;
+  font-weight: 600;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #adc6ff;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid #424754;
+  color: #c2c6d6;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #dae2fd;
+  border-color: #8c909f;
+}
+
+/* Input Inset */
+.input-inset {
+  background-color: #060e20;
+  border: 1px solid #424754;
+  color: #dae2fd;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.input-inset:focus {
+  border-color: #4d8eff;
+  box-shadow: 0 0 0 1px #4d8eff;
+}
+
+/* Confidence Meters */
+.confidence-meter {
+  height: 4px;
+  border-radius: 2px;
+  background-color: #2d3449;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.confidence-fill {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.conf-high {
+  background-color: #10b981;
+}
+
+.conf-med {
+  background-color: #f59e0b;
+}
+
+.conf-low {
+  background-color: #ef4444;
+}
+
+/* Status Indicator Pips */
+.pip-alert {
+  background-color: #ef4444;
+  border: 2px solid #131b2e;
+}
+
+.pip-warning {
+  background-color: #f59e0b;
+  border: 2px solid #131b2e;
+}
+
+.pip-info {
+  background-color: #4d8eff;
+  border: 2px solid #131b2e;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #424754;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8c909f;
+}
