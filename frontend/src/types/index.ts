@@ -204,3 +204,14 @@ export interface PageResponse<T> {
   totalPages: number;
   last: boolean;
 }
+
+export interface DashboardStats {
+  totalThreatActors: number;
+  trackedPersonas: number;
+  activeInvestigations: number;
+  highConfidenceLinkages: number;
+  monitoredIdentifiers: number;
+  activeInfrastructure: number;
+  categoryDistribution: Record<string, number>;
+}
+

@@ -1,6 +1,7 @@
 import {
   ActorDetail,
   ActorSummary,
+  DashboardStats,
   EvidenceItem,
   LinkageAnalysis,
   PageResponse,
@@ -11,12 +12,31 @@ import {
   TimelineEvent,
 } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+export function buildApiUrl(endpoint: string): string {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // In the browser, try relative path so Next.js rewrites proxy to backend
+  if (typeof window !== 'undefined') {
+    return cleanEndpoint;
+  }
+
+  // On server-side (Node.js / SSR)
+  const base = (process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8080').replace(/\/+$/, '');
+  if (base.endsWith('/api/v1') && cleanEndpoint.startsWith('/api/v1')) {
+    return `${base}${cleanEndpoint.replace(/^\/api\/v1/, '')}`;
+  }
+  return `${base}${cleanEndpoint}`;
+}
 
 async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const isBrowser = typeof window !== 'undefined';
+
+  // Primary URL candidate: relative in browser, backend URL in SSR
+  const primaryUrl = isBrowser ? cleanEndpoint : `http://127.0.0.1:8080${cleanEndpoint}`;
+
   try {
-    const res = await fetch(url, {
+    const res = await fetch(primaryUrl, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -25,18 +45,36 @@ async function fetchJson<T>(endpoint: string, options?: RequestInit): Promise<T>
     });
 
     if (!res.ok) {
-      let errorMsg = `API Error: ${res.status} ${res.statusText}`;
-      try {
-        const errorJson = await res.json();
-        if (errorJson.message) errorMsg = errorJson.message;
-      } catch (_) {}
-      throw new Error(errorMsg);
+      throw new Error(`API returned ${res.status}: ${res.statusText}`);
     }
 
     return await res.json();
-  } catch (err: any) {
-    console.warn(`API request unavailable for [${endpoint}]:`, err?.message || err);
-    throw err;
+  } catch (primaryErr: any) {
+    // If browser relative call failed, attempt direct fetch to 8080
+    if (isBrowser) {
+      const fallbackUrls = [
+        `http://localhost:8080${cleanEndpoint}`,
+        `http://127.0.0.1:8080${cleanEndpoint}`,
+      ];
+
+      for (const directUrl of fallbackUrls) {
+        try {
+          const directRes = await fetch(directUrl, {
+            ...options,
+            headers: {
+              'Content-Type': 'application/json',
+              ...options?.headers,
+            },
+          });
+          if (directRes.ok) {
+            return await directRes.json();
+          }
+        } catch (_) {}
+      }
+    }
+
+    console.warn(`API request failed for [${endpoint}]:`, primaryErr?.message || primaryErr);
+    throw primaryErr;
   }
 }
 
@@ -61,38 +99,47 @@ export const api = {
   },
 
   // Dashboard Stats
-  async getDashboardStats(): Promise<{
-    totalThreatActors: number;
-    trackedPersonas: number;
-    activeInvestigations: number;
-    highConfidenceLinkages: number;
-    monitoredIdentifiers: number;
-    activeInfrastructure: number;
-    categoryDistribution: Record<string, number>;
-  }> {
+  async getDashboardStats(): Promise<DashboardStats> {
     return fetchJson('/api/v1/dashboard/stats');
   },
 
-  // Actors
+  // Threat Actors
   async getActors(params?: {
-    category?: string;
-    minConfidence?: number;
-    q?: string;
     page?: number;
     size?: number;
+    sortBy?: string;
+    direction?: string;
   }): Promise<PageResponse<ActorSummary>> {
-    const query = new URLSearchParams();
-    if (params?.category && params.category !== 'ALL') query.set('category', params.category);
-    if (params?.minConfidence) query.set('minConfidence', params.minConfidence.toString());
-    if (params?.q) query.set('q', params.q);
-    if (params?.page !== undefined) query.set('page', params.page.toString());
-    if (params?.size !== undefined) query.set('size', params.size.toString());
-
-    return fetchJson(`/api/v1/actors?${query.toString()}`);
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', params.page.toString());
+    if (params?.size !== undefined) searchParams.set('size', params.size.toString());
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    if (params?.direction) searchParams.set('direction', params.direction);
+    const qs = searchParams.toString();
+    return fetchJson(`/api/v1/actors${qs ? `?${qs}` : ''}`);
   },
 
   async getActor(id: string): Promise<ActorDetail> {
     return fetchJson(`/api/v1/actors/${id}`);
+  },
+
+  async getActorRelationships(id: string): Promise<RelationshipGraph> {
+    return fetchJson(`/api/v1/actors/${id}/relationships`);
+  },
+
+  async getActorGraph(id: string): Promise<RelationshipGraph> {
+    return fetchJson(`/api/v1/graph/actor/${id}`);
+  },
+
+  async getActorTimeline(
+    id: string,
+    params?: { page?: number; size?: number }
+  ): Promise<PageResponse<TimelineEvent>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', params.page.toString());
+    if (params?.size !== undefined) searchParams.set('size', params.size.toString());
+    const qs = searchParams.toString();
+    return fetchJson(`/api/v1/timeline/actor/${id}${qs ? `?${qs}` : ''}`);
   },
 
   // Personas
@@ -100,58 +147,33 @@ export const api = {
     return fetchJson(`/api/v1/personas/${id}`);
   },
 
+  async getPersonaTimeline(
+    id: string,
+    params?: { page?: number; size?: number }
+  ): Promise<PageResponse<TimelineEvent>> {
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', params.page.toString());
+    if (params?.size !== undefined) searchParams.set('size', params.size.toString());
+    const qs = searchParams.toString();
+    return fetchJson(`/api/v1/timeline/persona/${id}${qs ? `?${qs}` : ''}`);
+  },
+
   // Search
   async search(params: {
-    q: string;
+    query?: string;
+    q?: string;
     type?: string;
-    category?: string;
-    startDate?: string;
-    endDate?: string;
-  }): Promise<SearchResult[]> {
-    const query = new URLSearchParams();
-    query.set('q', params.q);
-    if (params.type && params.type !== 'ALL') query.set('type', params.type);
-    if (params.category && params.category !== 'ALL') query.set('category', params.category);
-    if (params.startDate) query.set('startDate', params.startDate);
-    if (params.endDate) query.set('endDate', params.endDate);
-
-    return fetchJson(`/api/v1/search?${query.toString()}`);
-  },
-
-  // Timeline
-  async getActorTimeline(
-    actorId: string,
-    params?: { startDate?: string; endDate?: string; page?: number; size?: number }
-  ): Promise<PageResponse<TimelineEvent>> {
-    const query = new URLSearchParams();
-    if (params?.startDate) query.set('startDate', params.startDate);
-    if (params?.endDate) query.set('endDate', params.endDate);
-    if (params?.page !== undefined) query.set('page', params.page.toString());
-    if (params?.size !== undefined) query.set('size', params.size.toString());
-
-    return fetchJson(`/api/v1/timeline/actor/${actorId}?${query.toString()}`);
-  },
-
-  async getPersonaTimeline(
-    personaId: string,
-    params?: { startDate?: string; endDate?: string; page?: number; size?: number }
-  ): Promise<PageResponse<TimelineEvent>> {
-    const query = new URLSearchParams();
-    if (params?.startDate) query.set('startDate', params.startDate);
-    if (params?.endDate) query.set('endDate', params.endDate);
-    if (params?.page !== undefined) query.set('page', params.page.toString());
-    if (params?.size !== undefined) query.set('size', params.size.toString());
-
-    return fetchJson(`/api/v1/timeline/persona/${personaId}?${query.toString()}`);
-  },
-
-  // Relationships / Graph
-  async getActorRelationships(actorId: string): Promise<RelationshipGraph> {
-    return fetchJson(`/api/v1/actors/${actorId}/relationships`);
-  },
-
-  async getActorGraph(actorId: string): Promise<RelationshipGraph> {
-    return fetchJson(`/api/v1/graph/actor/${actorId}`);
+    page?: number;
+    size?: number;
+  }): Promise<PageResponse<SearchResult>> {
+    const searchParams = new URLSearchParams();
+    const q = params.query || params.q || '';
+    if (q) searchParams.set('q', q);
+    if (params.type) searchParams.set('type', params.type);
+    if (params.page !== undefined) searchParams.set('page', params.page.toString());
+    if (params.size !== undefined) searchParams.set('size', params.size.toString());
+    const qs = searchParams.toString();
+    return fetchJson(`/api/v1/search${qs ? `?${qs}` : ''}`);
   },
 
   // Linkages
@@ -193,6 +215,6 @@ export const api = {
 
   // Export URLs
   getExportUrl(format: 'pdf' | 'json' | 'csv', actorId: string): string {
-    return `${API_BASE_URL}/api/v1/export/${format}/${actorId}`;
+    return `/api/v1/export/${format}/${actorId}`;
   },
 };

@@ -4,39 +4,39 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
-import { ActorSummary, TimelineEvent } from '@/types';
+import { ActorSummary, DashboardStats, TimelineEvent } from '@/types';
 import { formatIsoDate } from '@/utils/formatters';
 
 const FALLBACK_ACTORS: ActorSummary[] = [
   {
-    id: '2bee3f4c-1923-40da-a2e9-78b9a1e9eb79',
+    id: 'a0000000-0000-0000-0000-000000000001',
     canonicalName: 'LockBit Syndicate Core',
     threatCategory: 'RANSOMWARE',
     primaryMotive: 'FINANCIAL',
     status: 'ACTIVE',
     overallConfidenceScore: 92.5,
     personaCount: 3,
-    associatedHandles: ['bassterlord_xss', 'basster_rampv2', 'lockbit_admin'],
+    associatedHandles: ['bassterlord_xss', 'basster_rampv2', 'basster_support_tg'],
     lastObservedAt: '2026-08-22T12:00:00Z',
   },
   {
-    id: '8f6b1a3d-4c5e-4791-b283-9e1234567890',
-    canonicalName: 'ShinyHunters Group',
+    id: 'a0000000-0000-0000-0000-000000000002',
+    canonicalName: 'ShinyHunters Data Collective',
     threatCategory: 'DATA_BROKER',
     primaryMotive: 'FINANCIAL',
     status: 'ACTIVE',
     overallConfidenceScore: 84.0,
     personaCount: 2,
-    associatedHandles: ['shiny_breached', 'shiny_telegram'],
+    associatedHandles: ['pompom_breached', 'shiny_telegram'],
     lastObservedAt: '2026-08-20T08:30:00Z',
   },
   {
-    id: '1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d',
-    canonicalName: 'ALPHV / BlackCat Operations',
+    id: 'a0000000-0000-0000-0000-000000000003',
+    canonicalName: 'ALPHV / BlackCat Group',
     threatCategory: 'RANSOMWARE',
     primaryMotive: 'FINANCIAL',
     status: 'DORMANT',
-    overallConfidenceScore: 78.5,
+    overallConfidenceScore: 78.0,
     personaCount: 2,
     associatedHandles: ['alphv_leak', 'blackcat_rep'],
     lastObservedAt: '2026-08-15T16:45:00Z',
@@ -46,7 +46,7 @@ const FALLBACK_ACTORS: ActorSummary[] = [
 const FALLBACK_TIMELINE: TimelineEvent[] = [
   {
     id: 'e1',
-    personaId: 'p1',
+    personaId: 'b0000000-0000-0000-0000-000000000001',
     personaHandle: 'bassterlord_xss',
     actorCanonicalName: 'LockBit Syndicate Core',
     eventType: 'FORUM_POST',
@@ -58,7 +58,7 @@ const FALLBACK_TIMELINE: TimelineEvent[] = [
   },
   {
     id: 'e2',
-    personaId: 'p2',
+    personaId: 'b0000000-0000-0000-0000-000000000002',
     personaHandle: 'basster_rampv2',
     actorCanonicalName: 'LockBit Syndicate Core',
     eventType: 'PERSONA_MIGRATION',
@@ -70,9 +70,9 @@ const FALLBACK_TIMELINE: TimelineEvent[] = [
   },
   {
     id: 'e3',
-    personaId: 'p3',
-    personaHandle: 'shiny_breached',
-    actorCanonicalName: 'ShinyHunters Group',
+    personaId: 'b0000000-0000-0000-0000-000000000004',
+    personaHandle: 'pompom_breached',
+    actorCanonicalName: 'ShinyHunters Data Collective',
     eventType: 'BREACH_ANNOUNCED',
     title: 'Telecommunications Database Leaked on Breached Portal',
     description: '14 million records offered for sale with Bitcoin escrow deposit verification.',
@@ -86,57 +86,83 @@ export default function DashboardPage() {
   const router = useRouter();
   const [actors, setActors] = useState<ActorSummary[]>([]);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
-  const [dashboardStats, setDashboardStats] = useState<{
-    totalThreatActors?: number;
-    trackedPersonas?: number;
-    activeInvestigations?: number;
-    highConfidenceLinkages?: number;
-    monitoredIdentifiers?: number;
-    activeInfrastructure?: number;
-  } | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [quickQuery, setQuickQuery] = useState('');
   const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadDashboard() {
       try {
         setIsLoading(true);
-        const [actorsRes, statsRes] = await Promise.allSettled([
-          api.getActors({ size: 10 }),
+
+        const [statsResult, actorsResult] = await Promise.allSettled([
           api.getDashboardStats(),
+          api.getActors({ size: 10 }),
         ]);
 
-        if (statsRes.status === 'fulfilled' && statsRes.value) {
-          setDashboardStats(statsRes.value);
+        let hasLiveConnection = false;
+
+        if (statsResult.status === 'fulfilled' && statsResult.value) {
+          if (isMounted) {
+            setDashboardStats(statsResult.value);
+            hasLiveConnection = true;
+          }
         }
 
-        if (actorsRes.status === 'fulfilled' && actorsRes.value && actorsRes.value.content && actorsRes.value.content.length > 0) {
-          setActors(actorsRes.value.content);
-          setIsBackendConnected(true);
+        if (
+          actorsResult.status === 'fulfilled' &&
+          actorsResult.value &&
+          actorsResult.value.content &&
+          actorsResult.value.content.length > 0
+        ) {
+          if (isMounted) {
+            setActors(actorsResult.value.content);
+            hasLiveConnection = true;
 
-          // Load timeline from primary actor
-          try {
-            const timelineRes = await api.getActorTimeline(actorsRes.value.content[0].id, { size: 5 });
-            if (timelineRes && timelineRes.content) {
-              setTimelineEvents(timelineRes.content);
+            // Attempt to load live timeline from first actor
+            try {
+              const timelineRes = await api.getActorTimeline(actorsResult.value.content[0].id, { size: 5 });
+              if (timelineRes && timelineRes.content && timelineRes.content.length > 0) {
+                setTimelineEvents(timelineRes.content);
+              } else {
+                setTimelineEvents(FALLBACK_TIMELINE);
+              }
+            } catch (_) {
+              setTimelineEvents(FALLBACK_TIMELINE);
             }
-          } catch (_) {}
+          }
         } else {
-          // Fallback only if empty
+          if (isMounted) {
+            setActors(FALLBACK_ACTORS);
+            setTimelineEvents(FALLBACK_TIMELINE);
+          }
+        }
+
+        if (isMounted) {
+          setIsBackendConnected(hasLiveConnection);
+        }
+      } catch (err: any) {
+        console.warn('Dashboard load encountered error, utilizing fallback threat records:', err?.message || err);
+        if (isMounted) {
           setActors(FALLBACK_ACTORS);
           setTimelineEvents(FALLBACK_TIMELINE);
+          setIsBackendConnected(false);
         }
-      } catch (err) {
-        console.warn('Live backend offline, rendering demonstration threat dataset:', err);
-        setActors(FALLBACK_ACTORS);
-        setTimelineEvents(FALLBACK_TIMELINE);
-        setIsBackendConnected(false);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
+
     loadDashboard();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleQuickAnalyze = (e: React.FormEvent) => {
@@ -146,9 +172,11 @@ export default function DashboardPage() {
     }
   };
 
-  const totalActors = dashboardStats?.totalThreatActors ?? actors.length;
-  const totalPersonas = dashboardStats?.trackedPersonas ?? actors.reduce((acc, a) => acc + (a.personaCount || 0), 0);
-  const highConfidenceCount = dashboardStats?.highConfidenceLinkages ?? actors.filter((a) => a.overallConfidenceScore >= 85).length;
+  // Exact API field bindings with resilient fallbacks
+  const totalActors = dashboardStats?.totalThreatActors ?? (actors.length > 0 ? actors.length : 3);
+  const totalPersonas = dashboardStats?.trackedPersonas ?? 7;
+  const activeInvestigations = dashboardStats?.activeInvestigations ?? 4;
+  const highConfidenceCount = dashboardStats?.highConfidenceLinkages ?? 2;
 
   return (
     <div className="flex flex-col gap-6">
@@ -163,11 +191,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 font-label-caps text-[10px]">
               <span
                 className={`inline-block w-2 h-2 rounded-full ${
-                  isBackendConnected ? 'bg-emerald-400' : 'bg-amber-400'
+                  isBackendConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
                 }`}
               ></span>
-              <span className="text-outline">
-                {isBackendConnected ? 'LIVE SUPABASE CTI FEED' : 'DEMO MODE (SYNTHETIC)'}
+              <span className={isBackendConnected ? 'text-emerald-400 font-semibold' : 'text-amber-400'}>
+                {isBackendConnected ? 'LIVE / API CONNECTED' : 'DEMO MODE / FALLBACK'}
               </span>
             </div>
           </div>
@@ -223,7 +251,7 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-outline-variant text-[20px]">masks</span>
           </div>
           <div className="font-display-lg text-display-lg font-bold text-on-surface mt-1">
-            {isLoading ? '...' : totalPersonas || 7}
+            {isLoading ? '...' : totalPersonas}
           </div>
           <div className="flex items-center gap-1 font-body-sm text-body-sm text-[#F59E0B]">
             <span className="material-symbols-outlined text-[16px]">trending_flat</span>
@@ -242,11 +270,11 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="font-display-lg text-display-lg font-bold text-on-surface mt-1">
-            {isLoading ? '...' : '34'}
+            {isLoading ? '...' : activeInvestigations}
           </div>
           <div className="flex items-center gap-1 font-body-sm text-body-sm text-outline">
             <span className="material-symbols-outlined text-[16px]">pending_actions</span>
-            <span>8 requiring attention</span>
+            <span>{activeInvestigations} active operations</span>
           </div>
         </div>
 
@@ -259,7 +287,7 @@ export default function DashboardPage() {
             <span className="material-symbols-outlined text-[#EF4444] text-[20px]">link</span>
           </div>
           <div className="font-display-lg text-display-lg font-bold text-on-surface mt-1">
-            {isLoading ? '...' : highConfidenceCount || 2}
+            {isLoading ? '...' : highConfidenceCount}
           </div>
           <div className="flex items-center gap-1 font-body-sm text-body-sm text-[#EF4444]">
             <span className="material-symbols-outlined text-[16px]">priority_high</span>
@@ -292,94 +320,112 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Dense Professional Data Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse font-body-sm">
-                <thead>
-                  <tr className="border-b border-outline-variant bg-surface-container-low">
-                    <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                      THREAT ACTOR / SYNDICATE
-                    </th>
-                    <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                      CATEGORY
-                    </th>
-                    <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                      ASSOCIATED PERSONAS
-                    </th>
-                    <th className="font-label-caps text-label-caps text-outline py-2.5 px-3 w-40">
-                      ATTRIBUTION
-                    </th>
-                    <th className="font-label-caps text-label-caps text-outline py-2.5 px-3 text-right">
-                      ACTION
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/40 font-body-sm">
-                  {actors.map((actor) => (
-                    <tr key={actor.id} className="interactive-row transition-colors">
-                      <td className="py-3 px-3">
-                        <Link
-                          href={`/actors/${actor.id}`}
-                          className="font-semibold text-on-surface hover:text-primary flex items-center gap-2"
-                        >
-                          <span className="material-symbols-outlined text-[18px] text-rose-400">
-                            shield_with_heart
-                          </span>
-                          <span>{actor.canonicalName}</span>
-                        </Link>
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded bg-error-container/40 text-error border border-error/30 font-label-caps text-[10px]">
-                          {actor.threatCategory}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 font-data-mono text-data-mono">
-                        <div className="flex flex-wrap gap-1">
-                          {actor.associatedHandles.map((h) => (
-                            <span
-                              key={h}
-                              className="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant text-tertiary text-[11px]"
-                            >
-                              @{h}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-data-mono text-data-mono text-on-surface text-[12px] font-bold">
-                            {actor.overallConfidenceScore.toFixed(0)}%
-                          </span>
-                          <div className="confidence-meter flex-1">
-                            <div
-                              className={`confidence-fill ${
-                                actor.overallConfidenceScore >= 85
-                                  ? 'conf-high'
-                                  : actor.overallConfidenceScore >= 70
-                                  ? 'conf-med'
-                                  : 'conf-low'
-                              }`}
-                              style={{ width: `${actor.overallConfidenceScore}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <Link
-                          href={`/actors/${actor.id}`}
-                          className="btn-secondary px-2.5 py-1 text-[11px] font-label-caps rounded inline-flex"
-                        >
-                          <span>Dossier</span>
-                          <span className="material-symbols-outlined text-[14px]">
-                            chevron_right
-                          </span>
-                        </Link>
-                      </td>
+            {/* Loading & Empty State Handling */}
+            {isLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-3 text-on-surface-variant">
+                <span className="material-symbols-outlined text-[32px] animate-spin text-primary">sync</span>
+                <span className="font-data-mono text-xs">Loading threat intelligence profiles...</span>
+              </div>
+            ) : actors.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-on-surface-variant">
+                <span className="material-symbols-outlined text-[32px] text-outline">inbox</span>
+                <span className="font-title-sm text-sm font-semibold">No Threat Actor Profiles Found</span>
+                <p className="font-body-sm text-xs text-outline">Database has no indexed threat actors matching current criteria.</p>
+              </div>
+            ) : (
+              /* Dense Professional Data Table */
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse font-body-sm">
+                  <thead>
+                    <tr className="border-b border-outline-variant bg-surface-container-low">
+                      <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
+                        THREAT ACTOR / SYNDICATE
+                      </th>
+                      <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
+                        CATEGORY
+                      </th>
+                      <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
+                        ASSOCIATED PERSONAS
+                      </th>
+                      <th className="font-label-caps text-label-caps text-outline py-2.5 px-3 w-40">
+                        ATTRIBUTION
+                      </th>
+                      <th className="font-label-caps text-label-caps text-outline py-2.5 px-3 text-right">
+                        ACTION
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/40 font-body-sm">
+                    {actors.map((actor) => (
+                      <tr key={actor.id} className="interactive-row transition-colors">
+                        <td className="py-3 px-3">
+                          <Link
+                            href={`/actors/${actor.id}`}
+                            className="font-semibold text-on-surface hover:text-primary flex items-center gap-2"
+                          >
+                            <span className="material-symbols-outlined text-[18px] text-rose-400">
+                              shield_with_heart
+                            </span>
+                            <span>{actor.canonicalName}</span>
+                          </Link>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded bg-error-container/40 text-error border border-error/30 font-label-caps text-[10px]">
+                            {actor.threatCategory}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-data-mono text-data-mono">
+                          <div className="flex flex-wrap gap-1">
+                            {actor.associatedHandles && actor.associatedHandles.length > 0 ? (
+                              actor.associatedHandles.map((h) => (
+                                <span
+                                  key={h}
+                                  className="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant text-tertiary text-[11px]"
+                                >
+                                  @{h}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-outline text-[11px]">None listed</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-data-mono text-data-mono text-on-surface text-[12px] font-bold">
+                              {actor.overallConfidenceScore.toFixed(0)}%
+                            </span>
+                            <div className="confidence-meter flex-1">
+                              <div
+                                className={`confidence-fill ${
+                                  actor.overallConfidenceScore >= 85
+                                    ? 'conf-high'
+                                    : actor.overallConfidenceScore >= 70
+                                    ? 'conf-med'
+                                    : 'conf-low'
+                                }`}
+                                style={{ width: `${actor.overallConfidenceScore}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <Link
+                            href={`/actors/${actor.id}`}
+                            className="btn-secondary px-2.5 py-1 text-[11px] font-label-caps rounded inline-flex"
+                          >
+                            <span>Dossier</span>
+                            <span className="material-symbols-outlined text-[14px]">
+                              chevron_right
+                            </span>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 

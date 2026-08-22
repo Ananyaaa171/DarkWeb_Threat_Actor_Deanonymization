@@ -96,8 +96,9 @@ function InvestigationContent() {
         type: type !== 'ALL' ? type : undefined,
       });
 
-      if (res && res.length > 0) {
-        setResults(res);
+      const resContent = res?.content || (Array.isArray(res) ? res : []);
+      if (resContent.length > 0) {
+        setResults(resContent);
         setIsLiveApi(true);
       } else {
         // Fallback filter
