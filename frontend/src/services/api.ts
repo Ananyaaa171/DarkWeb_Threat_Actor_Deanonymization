@@ -163,17 +163,27 @@ export const api = {
     query?: string;
     q?: string;
     type?: string;
+    category?: string;
     page?: number;
     size?: number;
-  }): Promise<PageResponse<SearchResult>> {
+  }): Promise<SearchResult[]> {
     const searchParams = new URLSearchParams();
     const q = params.query || params.q || '';
     if (q) searchParams.set('q', q);
-    if (params.type) searchParams.set('type', params.type);
-    if (params.page !== undefined) searchParams.set('page', params.page.toString());
-    if (params.size !== undefined) searchParams.set('size', params.size.toString());
+    if (params.type && params.type !== 'ALL') searchParams.set('type', params.type);
+    if (params.category) searchParams.set('category', params.category);
     const qs = searchParams.toString();
-    return fetchJson(`/api/v1/search${qs ? `?${qs}` : ''}`);
+    const raw = await fetchJson<any>(`/api/v1/search${qs ? `?${qs}` : ''}`);
+    const list: any[] = Array.isArray(raw) ? raw : (raw?.content || []);
+    return list.map((item) => ({
+      ...item,
+      confidenceScore: item.confidenceScore ?? item.confidence ?? null,
+      confidence: item.confidence ?? item.confidenceScore ?? null,
+      metadataSnippet: item.metadataSnippet ?? item.secondaryText ?? null,
+      secondaryText: item.secondaryText ?? item.metadataSnippet ?? null,
+      handle: item.handle ?? item.personaHandle ?? null,
+      personaHandle: item.personaHandle ?? item.handle ?? null,
+    }));
   },
 
   // Linkages

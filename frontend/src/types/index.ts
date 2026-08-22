@@ -102,12 +102,18 @@ export interface SearchResult {
   resultType: 'ACTOR' | 'PERSONA' | 'IDENTIFIER' | 'INFRASTRUCTURE';
   entityId: string;
   displayName: string;
-  actorName: string | null;
-  handle: string | null;
-  category: string | null;
-  confidenceScore: number | null;
-  lastObservedAt: string | null;
-  metadataSnippet: string | null;
+  secondaryText?: string | null;
+  actorId?: string | null;
+  actorName?: string | null;
+  personaId?: string | null;
+  personaHandle?: string | null;
+  handle?: string | null;
+  category?: string | null;
+  confidence?: number | null;
+  confidenceScore?: number | null;
+  lastObservedAt?: string | null;
+  metadataSnippet?: string | null;
+  metadata?: Record<string, any>;
 }
 
 export interface GraphNode {

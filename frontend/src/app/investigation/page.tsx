@@ -1,77 +1,83 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/services/api';
 import { SearchResult } from '@/types';
 
 const FALLBACK_SEARCH_RESULTS: SearchResult[] = [
   {
-    entityId: '2bee3f4c-1923-40da-a2e9-78b9a1e9eb79',
     resultType: 'ACTOR',
+    entityId: 'a0000000-0000-0000-0000-000000000001',
+    actorId: 'a0000000-0000-0000-0000-000000000001',
     displayName: 'LockBit Syndicate Core',
+    actorName: 'LockBit Syndicate Core',
+    handle: null,
     category: 'RANSOMWARE',
-    handle: null,
     confidenceScore: 92.5,
+    confidence: 92.5,
     lastObservedAt: '2026-08-22T12:00:00Z',
-    actorName: 'LockBit Syndicate',
-    metadataSnippet: 'Ransomware-as-a-Service syndicate with 3 tracked personas across XSS.is and Ramp.',
+    metadataSnippet: 'Active RaaS developer with cross-forum migration footprint across XSS.is and Ramp.',
+    secondaryText: 'Active RaaS developer with cross-forum migration footprint across XSS.is and Ramp.',
   },
   {
-    entityId: 'p1-uuid',
     resultType: 'PERSONA',
-    displayName: '@bassterlord_xss (XSS.is Forum)',
-    category: 'FORUM_PERSONA',
+    entityId: 'b0000000-0000-0000-0000-000000000001',
+    actorId: 'a0000000-0000-0000-0000-000000000001',
+    displayName: '@bassterlord_xss',
+    actorName: 'LockBit Syndicate Core',
     handle: 'bassterlord_xss',
-    confidenceScore: 98.0,
-    lastObservedAt: '2026-07-30T00:00:00Z',
-    actorName: 'LockBit Syndicate Core',
-    metadataSnippet: 'Affiliate operator specializing in Active Directory post-exploitation manual deployment.',
+    personaHandle: 'bassterlord_xss',
+    category: 'XSS.is',
+    confidenceScore: 98.5,
+    confidence: 98.5,
+    lastObservedAt: '2023-01-20T15:45:00Z',
+    metadataSnippet: 'Forum Veteran profile on XSS.is with 2,400+ reputation points.',
+    secondaryText: 'Forum Veteran profile on XSS.is with 2,400+ reputation points.',
   },
   {
-    entityId: 'p2-uuid',
     resultType: 'PERSONA',
-    displayName: '@basster_rampv2 (Ramp Underground)',
-    category: 'FORUM_PERSONA',
+    entityId: 'b0000000-0000-0000-0000-000000000002',
+    actorId: 'a0000000-0000-0000-0000-000000000001',
+    displayName: '@basster_rampv2',
+    actorName: 'LockBit Syndicate Core',
     handle: 'basster_rampv2',
+    personaHandle: 'basster_rampv2',
+    category: 'Ramp Forum',
     confidenceScore: 94.0,
-    lastObservedAt: '2026-08-22T00:00:00Z',
-    actorName: 'LockBit Syndicate Core',
-    metadataSnippet: 'Migrated handle on Ramp forum sharing verified PGP subkey 0x4A72B5C1.',
+    confidence: 94.0,
+    lastObservedAt: '2026-08-15T18:30:00Z',
+    metadataSnippet: 'Active Ramp forum account advertising affiliate training and manual.',
+    secondaryText: 'Active Ramp forum account advertising affiliate training and manual.',
   },
   {
-    entityId: 'id-pgp-1',
     resultType: 'IDENTIFIER',
-    displayName: 'PGP: 94F8 2B31 8AC4 701E D5E2 1198 4A72 B5C1 09E8 33DF',
-    category: 'PGP_FINGERPRINT',
-    handle: null,
-    confidenceScore: 99.0,
-    lastObservedAt: '2026-08-21T00:00:00Z',
+    entityId: 'c0000000-0000-0000-0000-000000000001',
+    actorId: 'a0000000-0000-0000-0000-000000000001',
+    displayName: '0x4A72B5C1 (PGP Subkey)',
     actorName: 'LockBit Syndicate Core',
-    metadataSnippet: 'Subkey ID 0x4A72B5C1 • RSA-4096 cryptographic escrow key.',
-  },
-  {
-    entityId: 'id-btc-1',
-    resultType: 'IDENTIFIER',
-    displayName: 'BTC: bc1q9x32m049x3k2jsdu8274k29472jske829375kd',
-    category: 'BTC_WALLET',
     handle: null,
+    category: 'PGP_KEY',
     confidenceScore: 95.0,
-    lastObservedAt: '2026-08-19T00:00:00Z',
-    actorName: 'LockBit Syndicate Core',
-    metadataSnippet: 'Confirmed ransom deposit wallet with 48 transactions totaling 28.45 BTC.',
+    confidence: 95.0,
+    lastObservedAt: '2026-08-15T18:30:00Z',
+    metadataSnippet: 'RSA 4096-bit signing subkey verified on Ramp and historical XSS.is posts.',
+    secondaryText: 'RSA 4096-bit signing subkey verified on Ramp and historical XSS.is posts.',
   },
   {
-    entityId: 'inf-onion-1',
     resultType: 'INFRASTRUCTURE',
-    displayName: 'lockbit7z275w3k3jshv5729fksu627ahskd8276f5skdl27f6sjd8.onion',
-    category: 'ONION_V3',
-    handle: null,
-    confidenceScore: 90.0,
-    lastObservedAt: '2026-08-22T08:00:00Z',
+    entityId: 'd0000000-0000-0000-0000-000000000001',
+    actorId: 'a0000000-0000-0000-0000-000000000001',
+    displayName: 'lockbit7xx...onion',
     actorName: 'LockBit Syndicate Core',
+    handle: null,
+    category: 'ONION_SERVICE',
+    confidenceScore: 90.0,
+    confidence: 90.0,
+    lastObservedAt: '2026-08-22T08:00:00Z',
     metadataSnippet: 'Active Tor Onion v3 negotiation mirror co-located on AS200651 Flokinet Ltd.',
+    secondaryText: 'Active Tor Onion v3 negotiation mirror co-located on AS200651 Flokinet Ltd.',
   },
 ];
 
@@ -83,7 +89,7 @@ function InvestigationContent() {
 
   const [query, setQuery] = useState(initialQuery);
   const [selectedType, setSelectedType] = useState(initialType);
-  const [minConfidence, setMinConfidence] = useState(50);
+  const [minConfidence, setMinConfidence] = useState(0);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLiveApi, setIsLiveApi] = useState(false);
@@ -91,31 +97,25 @@ function InvestigationContent() {
   const executeSearch = async (searchTerm: string, type: string) => {
     try {
       setIsLoading(true);
+      const q = searchTerm.trim();
       const res = await api.search({
-        q: searchTerm.trim() || 'LockBit',
+        q: q || undefined,
         type: type !== 'ALL' ? type : undefined,
       });
 
-      const resContent = res?.content || (Array.isArray(res) ? res : []);
-      if (resContent.length > 0) {
-        setResults(resContent);
+      if (res && res.length > 0) {
+        setResults(res);
         setIsLiveApi(true);
       } else {
-        // Fallback filter
-        let filtered = FALLBACK_SEARCH_RESULTS;
-        if (type !== 'ALL') {
-          filtered = filtered.filter((r) => r.resultType === type);
+        if (q) {
+          // If a specific query was submitted and returned 0 live matches, show 0 results
+          setResults([]);
+          setIsLiveApi(true);
+        } else {
+          // If empty query, show baseline fallback dataset
+          setResults(FALLBACK_SEARCH_RESULTS);
+          setIsLiveApi(false);
         }
-        if (searchTerm.trim()) {
-          const qLower = searchTerm.toLowerCase();
-          filtered = filtered.filter(
-            (r) =>
-              r.displayName.toLowerCase().includes(qLower) ||
-              (r.actorName && r.actorName.toLowerCase().includes(qLower))
-          );
-        }
-        setResults(filtered);
-        setIsLiveApi(false);
       }
     } catch (err: any) {
       console.warn('Live search offline, filtering demonstration dataset:', err);
@@ -128,7 +128,9 @@ function InvestigationContent() {
         filtered = filtered.filter(
           (r) =>
             r.displayName.toLowerCase().includes(qLower) ||
-            (r.actorName && r.actorName.toLowerCase().includes(qLower))
+            (r.actorName && r.actorName.toLowerCase().includes(qLower)) ||
+            (r.handle && r.handle.toLowerCase().includes(qLower)) ||
+            (r.personaHandle && r.personaHandle.toLowerCase().includes(qLower))
         );
       }
       setResults(filtered);
@@ -163,14 +165,28 @@ function InvestigationContent() {
   };
 
   const getEntityLink = (res: SearchResult) => {
-    if (res.resultType === 'ACTOR') return `/actors/${res.entityId}`;
-    if (res.resultType === 'PERSONA') return `/linkage?source=${res.entityId}`;
+    if (res.resultType === 'ACTOR') {
+      const actorId = res.actorId || res.entityId;
+      return `/actors/${actorId}`;
+    }
+    if (res.resultType === 'PERSONA') {
+      if (res.actorId) return `/actors/${res.actorId}`;
+      return `/linkage?source=${res.entityId || res.personaId}`;
+    }
+    if (res.actorId) {
+      return `/actors/${res.actorId}`;
+    }
     return `/graph`;
   };
 
-  const filteredByConfidence = results.filter(
-    (r) => r.confidenceScore === null || r.confidenceScore >= minConfidence
-  );
+  const getScore = (r: SearchResult): number | null => {
+    return r.confidence ?? r.confidenceScore ?? null;
+  };
+
+  const filteredByConfidence = results.filter((r) => {
+    const score = getScore(r);
+    return score === null || score >= minConfidence;
+  });
 
   return (
     <div className="flex flex-col gap-8">
@@ -210,9 +226,9 @@ function InvestigationContent() {
           </button>
           <button
             onClick={() => {
-              setQuery('94F8');
+              setQuery('0x4A72B5C1');
               setSelectedType('IDENTIFIER');
-              executeSearch('94F8', 'IDENTIFIER');
+              executeSearch('0x4A72B5C1', 'IDENTIFIER');
             }}
             className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant hover:border-primary text-tertiary transition-colors cursor-pointer"
           >
@@ -366,73 +382,77 @@ function InvestigationContent() {
                 ) : filteredByConfidence.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-outline font-data-mono text-xs">
-                      No threat indicators matched the selected filters.
+                      No threat indicators matched the query &quot;{query}&quot;.
                     </td>
                   </tr>
                 ) : (
-                  filteredByConfidence.map((res, i) => (
-                    <tr
-                      key={`${res.entityId}-${i}`}
-                      className="interactive-row transition-colors cursor-pointer"
-                    >
-                      <td className="px-4 py-3 font-bold text-on-surface">
-                        <Link
-                          href={getEntityLink(res)}
-                          className="flex items-center gap-2 hover:text-primary transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-primary text-[18px]">
-                            {getEntityIcon(res.resultType)}
-                          </span>
-                          <span>{res.displayName}</span>
-                        </Link>
-                        {res.metadataSnippet && (
-                          <div className="text-[11px] font-normal text-outline truncate max-w-md mt-0.5">
-                            {res.metadataSnippet}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-label-caps bg-surface-variant text-on-surface-variant border border-outline-variant">
-                          {res.resultType}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-data-mono text-data-mono text-outline">
-                        {res.actorName || res.category || '—'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {res.confidenceScore !== null ? (
-                          <div className="flex items-center gap-2 w-32">
-                            <div className="flex-1 h-1 bg-surface-container-lowest rounded-full overflow-hidden">
-                              <div
-                                className={`h-full ${
-                                  res.confidenceScore >= 85
-                                    ? 'bg-[#10B981]'
-                                    : res.confidenceScore >= 70
-                                    ? 'bg-primary'
-                                    : 'bg-[#F59E0B]'
-                                }`}
-                                style={{ width: `${res.confidenceScore}%` }}
-                              ></div>
-                            </div>
-                            <span className="font-data-mono text-data-mono text-[12px] font-bold text-on-surface">
-                              {res.confidenceScore.toFixed(0)}%
+                  filteredByConfidence.map((res, i) => {
+                    const score = getScore(res);
+                    const snippet = res.metadataSnippet || res.secondaryText;
+                    return (
+                      <tr
+                        key={`${res.entityId || res.actorId}-${i}`}
+                        className="interactive-row transition-colors cursor-pointer"
+                      >
+                        <td className="px-4 py-3 font-bold text-on-surface">
+                          <Link
+                            href={getEntityLink(res)}
+                            className="flex items-center gap-2 hover:text-primary transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-primary text-[18px]">
+                              {getEntityIcon(res.resultType)}
                             </span>
-                          </div>
-                        ) : (
-                          <span className="font-data-mono text-[11px] text-outline">INDICATOR</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Link
-                          href={getEntityLink(res)}
-                          className="btn-secondary px-2.5 py-1 text-[11px] font-label-caps rounded inline-flex items-center gap-1"
-                        >
-                          <span>Investigate</span>
-                          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                        </Link>
-                      </td>
-                    </tr>
-                  ))
+                            <span>{res.displayName}</span>
+                          </Link>
+                          {snippet && (
+                            <div className="text-[11px] font-normal text-outline truncate max-w-md mt-0.5">
+                              {snippet}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-label-caps bg-surface-variant text-on-surface-variant border border-outline-variant">
+                            {res.resultType}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-data-mono text-data-mono text-outline">
+                          {res.actorName || res.category || '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          {score !== null && score !== undefined ? (
+                            <div className="flex items-center gap-2 w-32">
+                              <div className="flex-1 h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full ${
+                                    score >= 85
+                                      ? 'bg-[#10B981]'
+                                      : score >= 70
+                                      ? 'bg-primary'
+                                      : 'bg-[#F59E0B]'
+                                  }`}
+                                  style={{ width: `${score}%` }}
+                                ></div>
+                              </div>
+                              <span className="font-data-mono text-data-mono text-[12px] font-bold text-on-surface">
+                                {score.toFixed(0)}%
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="font-data-mono text-[11px] text-outline">INDICATOR</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <Link
+                            href={getEntityLink(res)}
+                            className="btn-secondary px-2.5 py-1 text-[11px] font-label-caps rounded inline-flex items-center gap-1"
+                          >
+                            <span>Investigate</span>
+                            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
