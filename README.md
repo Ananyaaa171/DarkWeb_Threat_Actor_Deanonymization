@@ -1,148 +1,82 @@
-# Dark Web Deanonymizer
-**Threat Actor Intelligence & Persona Attribution Platform (Smart India Hackathon)**
+# Dark Web Deanonymizer Platform
+
+> An explainable cyber-threat intelligence platform for correlating dark-web personas, digital identifiers, infrastructure, behavioral patterns, and writing style to support potential threat-actor attribution.
 
 ---
 
-## Overview
-The **Dark Web Deanonymizer** is an authorized cyber threat intelligence (CTI) and attribution platform designed for law enforcement agencies (LEAs), CERTs, and security analysts. It enables automated ingestion of open-source threat data, cross-persona correlation, statistical stylometric profiling, deterministic multi-factor attribution scoring, and interactive visualization of darknet threat networks.
+## ⚠️ Disclaimer
 
-Refer to [PROJECT_BLUEPRINT.md](./PROJECT_BLUEPRINT.md) for the full architectural specification.
+This project is a **research and educational prototype** intended for cybersecurity research, threat-intelligence analysis, and controlled demonstrations.
 
----
+It does not provide guaranteed real-world identity attribution or deanonymization. Attribution scores represent correlations generated from the project's deterministic analytical model and should not be interpreted as definitive proof of identity.
 
-## 1. Prerequisites
-
-Make sure the following tools are installed on your workstation:
-
-- **Node.js**: v18.0.0 or higher (v20+ recommended)
-- **Java JDK**: Version 17 or higher
-- **Apache Maven**: Version 3.8 or higher (or use Maven wrapper)
-- **Supabase / PostgreSQL**: Supabase account or local PostgreSQL 15+ instance
+Use only with legally obtained data and in authorized environments.
 
 ---
 
-## 2. Supabase PostgreSQL Configuration
+## 🎯 Overview
 
-### Step A: Initialize Schema
-1. Open your **Supabase Dashboard** (or local PostgreSQL client such as pgAdmin / DBeaver).
-2. Open the **SQL Editor**.
-3. Copy and run the contents of [`database/schema.sql`](./database/schema.sql).
-   - This creates all 8 MVP core tables: `threat_actors`, `personas`, `identifiers`, `infrastructure`, `stylometric_samples`, `linkage_analysis`, `evidence_items`, and `timeline_events`.
-   - It also enables required extensions (`uuid-ossp`, `pg_trgm`) and creates performance indexes.
+Dark-web investigations often involve fragmented information spread across multiple personas, forums, cryptographic identifiers, cryptocurrency wallets, infrastructure, and historical activity.
 
-### Step B: Load Demonstration Dataset
-1. In the Supabase **SQL Editor**, copy and run the contents of [`database/seed_data.sql`](./database/seed_data.sql).
-   - This populates a realistic, synthetic research dataset (LockBit / Bassterlord, ShinyHunters, ALPHV) demonstrating cross-forum persona migrations, shared PGP/wallet indicators, and timeline events.
+The **Dark Web Deanonymizer Platform (DWD)** provides a unified investigation environment for correlating these signals.
 
----
+The platform combines:
 
-## 3. Environment Variables
+- Threat-actor and persona profiling
+- Digital identifier correlation
+- Infrastructure relationship analysis
+- Statistical stylometry
+- Behavioral pattern analysis
+- Deterministic multi-factor attribution scoring
+- Explainable Gemini-generated forensic summaries
+- Relationship graph visualization
+- Chronological intelligence timelines
+- Investigation report exports
 
-Create a `.env` file or export the following variables in your terminal:
-
-```bash
-# =============================================================================
-# Database Configuration (Supabase PostgreSQL Connection Pooler URI)
-# =============================================================================
-SPRING_DATASOURCE_URL=jdbc:postgresql://db.xxxxxx.supabase.co:5432/postgres
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=your_supabase_database_password
-
-# =============================================================================
-# Google Gemini AI Configuration (Google AI Studio)
-# =============================================================================
-GEMINI_API_KEY=your_google_ai_studio_api_key
-GEMINI_MODEL_NAME=gemini-1.5-flash        # Configurable LLM for semantic explanations
-GEMINI_EMBEDDING_MODEL=text-embedding-004 # Configurable model for vector embeddings
-
-# =============================================================================
-# Frontend API Base URL
-# =============================================================================
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
-```
+The objective is to transform fragmented indicators into a structured, explainable investigation workflow.
 
 ---
 
-## 4. How to Run the Backend (Spring Boot)
+# 🧠 Core Attribution Pipeline
 
-```bash
-# Navigate to the backend directory
-cd backend
+The platform uses a deterministic four-factor attribution model:
 
-# Compile and run unit tests (uses in-memory H2 database for isolated testing)
-mvn clean test
-
-# Run the Spring Boot development server (port 8080)
-mvn spring-boot:run
-```
-
-Once running, verify the backend health endpoint in your browser or curl:
-```bash
-curl http://localhost:8080/api/v1/health
-```
-
----
-
-## 5. How to Run the Frontend (Next.js)
-
-```bash
-# Navigate to the frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the Next.js development server (port 3000)
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
-## 6. Project Directory Layout
-
-```
-dark-web-deanonymizer/
-├── frontend/                          # Next.js 14 / React Frontend (App Router, TypeScript)
-│   ├── src/
-│   │   ├── app/                       # MVP Pages (Login, Dashboard, Search, Graph, Timeline, etc.)
-│   │   ├── components/                # Reusable UI & Visualization Components
-│   │   ├── lib/                       # API client & helpers
-│   │   └── types/                     # Core TypeScript Data Interfaces
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── backend/                           # Java 17 + Spring Boot 3.3.3 Backend
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/sih/deanonymizer/
-│   │   │   │   ├── config/            # CorsConfig, SecurityConfig
-│   │   │   │   ├── controller/        # REST API Controllers
-│   │   │   │   ├── model/entity/      # JPA Entities (ThreatActor, Persona, etc.)
-│   │   │   │   └── repository/        # Spring Data JPA Repositories
-│   │   │   └── resources/
-│   │   │       └── application.yml    # Configuration & ENV bindings
-│   │   └── test/                      # Unit & integration tests
-│   └── pom.xml
-│
-├── database/                          # Supabase PostgreSQL Layer
-│   ├── schema.sql                     # MVP 8 tables DDL + indexes
-│   └── seed_data.sql                  # Realistic demonstration dataset
-│
-├── docs/                              # Project documentation & SIH assets
-├── PROJECT_BLUEPRINT.md               # Master Technical Blueprint
-└── README.md                          # Getting Started Guide (This file)
-```
-
----
-
-## 7. Next Steps (Development Roadmap)
-
-- **Phase 1**: Project Setup + Supabase Database Layer ✅ (*Completed*)
-- **Phase 2**: Spring Boot Core REST APIs & Data Ingestion Pipeline (*Upcoming*)
-- **Phase 3**: Statistical Stylometry NLP + Deterministic Scoring + Configurable Gemini Explanation Engine
-- **Phase 4**: Next.js Cyber UI (8 Essential Pages)
-- **Phase 5**: Full Integration & End-to-End Investigation Flow
-- **Phase 6**: PDF Intelligence Dossier Generator + Autonomous Feed Sync + Audit
-- **Phase 7**: End-to-End Testing & SIH Presentation Polish
+```text
+                         Persona A
+                             │
+                             │
+                             ▼
+                  ┌─────────────────────┐
+                  │ Investigation Engine│
+                  └──────────┬──────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+        ▼                    ▼                    ▼
+   Identifiers          Stylometry           Behavior
+     35%                   25%                  20%
+        │                    │                    │
+        └────────────────────┼────────────────────┘
+                             │
+                             ▼
+                      Infrastructure
+                           20%
+                             │
+                             ▼
+                ┌─────────────────────────┐
+                │ Attribution Score       │
+                │                         │
+                │ 0.35 ID                 │
+                │ + 0.25 Stylometry       │
+                │ + 0.20 Behavior         │
+                │ + 0.20 Infrastructure   │
+                └────────────┬────────────┘
+                             │
+                             ▼
+                  Confidence Classification
+                             │
+                             ▼
+                 Gemini Explainable Brief
+                             │
+                             ▼
+                    Evidence Matrix
