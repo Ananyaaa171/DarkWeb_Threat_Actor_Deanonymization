@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/services/api';
-import { LinkageAnalysis, EvidenceItem } from '@/types';
+import { LinkageAnalysis, EvidenceItem, TimelineEvent } from '@/types';
 import { formatIsoDate } from '@/utils/formatters';
 
 interface PersonaCardData {
@@ -76,7 +76,7 @@ const FALLBACK_LINKAGE: LinkageAnalysis = {
   behavioralScore: 17.5, // out of 20
   infrastructureScore: 17.0, // out of 20
   aiExplanationSummary:
-    'Based on multi-vector algorithmic analysis, there is an 89.50% confidence level (High-Confidence Linkage) that @bassterlord_xss and @basster_rampv2 represent the same physical threat actor. The strongest deterministic factor (33.25 / 35.00 pts) stems from an exact cryptographic PGP subkey match (0x4A72B5C1) embedded in escrow announcements. Furthermore, stylometric analysis of dark web forum posts indicates an 87.00% alignment in vocabulary richness, punctuation ratios, and structural greeting formulations. Behavioral profiling reflects identical UTC+3 working hour distributions with active posting windows between 09:00 and 18:00 UTC.',
+    'Based on multi-vector algorithmic analysis, there is an 89.50% confidence level (Strong Connection) that @bassterlord_xss and @basster_rampv2 represent the same physical threat actor. The strongest deterministic factor (33.25 / 35.00 pts) stems from an exact cryptographic PGP subkey match (0x4A72B5C1) embedded in escrow announcements. Furthermore, stylometric writing style analysis of dark web forum posts indicates an 87.00% alignment in vocabulary richness, punctuation ratios, and structural greeting formulations. Behavioral profiling reflects identical UTC+3 working hour distributions with active posting windows between 09:00 and 18:00 UTC.',
   analystReviewStatus: 'PENDING_REVIEW',
   evidenceItems: [
     {
@@ -87,7 +87,7 @@ const FALLBACK_LINKAGE: LinkageAnalysis = {
       details: 'Identical PGP subkey 0x4A72B5C1 attached to both account profiles.',
       evidenceSnippet: 'pub: 94F8 2B31 8AC4 701E D5E2 1198 4A72 B5C1 09E8 33DF',
       source: 'XSS.is & Ramp Forum PGP Registry',
-      sourceReliability: 'A (Confirmed Cryptographic Proof)',
+      sourceReliability: 'Confirmed Cryptographic Proof (High Reliability)',
       observedAt: '2026-08-21T09:15:00Z',
     },
     {
@@ -95,10 +95,10 @@ const FALLBACK_LINKAGE: LinkageAnalysis = {
       factorCategory: 'STYLOMETRY',
       title: 'Writing Style & Vocabulary Overlap',
       contributionPoints: 21.75,
-      details: 'Cosine similarity 0.87 across 12 stylometric features (character bigrams, punctuation frequencies).',
+      details: 'Cosine similarity 0.87 across 12 writing style features (character bigrams, punctuation frequencies).',
       evidenceSnippet: 'Shared signature greeting pattern: "[!] Greetings to the board, regarding payload deployment..."',
       source: 'Cross-Forum Corpus NLP Engine',
-      sourceReliability: 'B (High Algorithmic Confidence)',
+      sourceReliability: 'High Statistical Alignment',
       observedAt: '2026-08-22T12:00:00Z',
     },
     {
@@ -109,7 +109,7 @@ const FALLBACK_LINKAGE: LinkageAnalysis = {
       details: '94% diurnal correlation in UTC+3 (Moscow Standard Time) business hours.',
       evidenceSnippet: '88% of forum messages submitted between 09:00 - 18:00 UTC.',
       source: 'Historical Darknet Forum Timestamp Ingestion',
-      sourceReliability: 'B (High)',
+      sourceReliability: 'Consistent Diurnal Match',
       observedAt: '2026-08-22T14:00:00Z',
     },
     {
@@ -120,24 +120,86 @@ const FALLBACK_LINKAGE: LinkageAnalysis = {
       details: 'Referenced the same backend Tor mirror co-located on AS200651 Flokinet Ltd.',
       evidenceSnippet: 'http://lockbit7z275w3k3jshv5729fksu627ahskd8276f5skdl27f6sjd8.onion',
       source: 'Tor Infrastructure Passive Scanner',
-      sourceReliability: 'B (High)',
+      sourceReliability: 'Direct Network Co-location',
       observedAt: '2026-08-22T08:00:00Z',
     },
   ],
   computedAt: '2026-08-22T19:00:00Z',
 };
 
+const FALLBACK_CHRONOLOGICAL_TIMELINE: TimelineEvent[] = [
+  {
+    id: 'tl-1',
+    personaId: 'b0000000-0000-0000-0000-000000000001',
+    personaHandle: 'bassterlord_xss',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'FORUM_REGISTRATION',
+    title: 'Initial Account Created on XSS.is',
+    description: 'Persona established handle bassterlord_xss and deposited initial escrow collateral.',
+    sourceReference: 'XSS.is Registration Log',
+    eventTimestamp: '2022-08-10T00:00:00Z',
+    severity: 'INFO',
+  },
+  {
+    id: 'tl-2',
+    personaId: 'b0000000-0000-0000-0000-000000000001',
+    personaHandle: 'bassterlord_xss',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'PGP_PUBLICATION',
+    title: 'PGP Key Master & Subkey Registered',
+    description: 'Published primary PGP key with operational subkey 0x4A72B5C1 for encrypted affiliate negotiations.',
+    sourceReference: 'XSS.is Public PGP Keyring',
+    eventTimestamp: '2022-11-05T14:30:00Z',
+    severity: 'MEDIUM',
+  },
+  {
+    id: 'tl-3',
+    personaId: 'b0000000-0000-0000-0000-000000000001',
+    personaHandle: 'bassterlord_xss',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'MIGRATION_ANNOUNCEMENT',
+    title: 'Cross-Forum Migration Notice Posted',
+    description: 'Advised affiliates that future operations and negotiation channels would transition to Ramp forum.',
+    sourceReference: 'XSS.is Pinned Thread #89',
+    eventTimestamp: '2026-07-30T10:00:00Z',
+    severity: 'HIGH',
+  },
+  {
+    id: 'tl-4',
+    personaId: 'b0000000-0000-0000-0000-000000000002',
+    personaHandle: 'basster_rampv2',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'FORUM_REGISTRATION',
+    title: 'Ramp Forum Registration with Matching PGP Key',
+    description: 'Registered @basster_rampv2 and verified profile using matching subkey 0x4A72B5C1.',
+    sourceReference: 'Ramp Forum User Profile #4021',
+    eventTimestamp: '2026-08-01T08:15:00Z',
+    severity: 'HIGH',
+  },
+  {
+    id: 'tl-5',
+    personaId: 'b0000000-0000-0000-0000-000000000002',
+    personaHandle: 'basster_rampv2',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'FORUM_POST',
+    title: 'Affiliate Operational Handbook v3 Released',
+    description: 'Published identical operational manual text as previously seen on XSS.is.',
+    sourceReference: 'Ramp Forum Archive #883',
+    eventTimestamp: '2026-08-22T14:00:00Z',
+    severity: 'MEDIUM',
+  },
+];
+
 function LinkageContent() {
   const searchParams = useSearchParams();
 
-  // Deterministic default initial state for SSR / Hydration alignment
   const [sourceId, setSourceId] = useState('b0000000-0000-0000-0000-000000000001');
   const [targetId, setTargetId] = useState('b0000000-0000-0000-0000-000000000002');
   const [analysis, setAnalysis] = useState<LinkageAnalysis>(FALLBACK_LINKAGE);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>(FALLBACK_CHRONOLOGICAL_TIMELINE);
   const [isComputing, setIsComputing] = useState(false);
   const [isLiveApi, setIsLiveApi] = useState(false);
 
-  // Sync with searchParams after initial hydration
   useEffect(() => {
     const src = searchParams.get('source');
     const tgt = searchParams.get('target');
@@ -176,8 +238,8 @@ function LinkageContent() {
   const sourcePersona: PersonaCardData =
     FALLBACK_PERSONAS.find((p) => p.id === sourceId) || {
       id: sourceId,
-      handle: analysis?.sourcePersonaHandle || 'source_persona',
-      platform: analysis?.sourcePersonaPlatform || 'Darknet Forum',
+      handle: analysis?.sourcePersonaHandle || 'bassterlord_xss',
+      platform: analysis?.sourcePersonaPlatform || 'XSS.is Underground',
       actorName: 'LockBit 3.0 Syndicate',
       firstSeen: '2021-04-12',
       tags: ['Affiliate Core', 'RU/EN'],
@@ -188,7 +250,7 @@ function LinkageContent() {
   const targetPersona: PersonaCardData =
     FALLBACK_PERSONAS.find((p) => p.id === targetId) || {
       id: targetId,
-      handle: analysis?.targetPersonaHandle || 'target_persona',
+      handle: analysis?.targetPersonaHandle || 'basster_rampv2',
       platform: analysis?.targetPersonaPlatform || 'Ramp Forum',
       actorName: 'LockBit 3.0 Syndicate',
       firstSeen: '2023-02-01',
@@ -207,38 +269,34 @@ function LinkageContent() {
   const infrastructureScore = analysis?.infrastructureScore ?? 17.0;
   const evidenceList: EvidenceItem[] = analysis?.evidenceItems || FALLBACK_LINKAGE.evidenceItems;
 
+  const isStrongConnection = safeScore >= 75;
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Header Section (Exact Stitch AI Linkage Header) */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+      {/* 1. Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-on-surface-variant mb-1 font-label-caps text-xs">
-            <span className="tracking-widest text-primary font-bold">
-              AI LINKAGE ANALYSIS
+          <div className="flex items-center gap-2 text-on-surface-variant mb-1 font-mono text-xs">
+            <span className="tracking-wider text-primary font-bold">
+              CONNECTION ANALYSIS
             </span>
-            <span className="text-outline-variant">/</span>
-            <span className="font-data-mono">INV-2026-884A</span>
-            <span className="text-outline-variant">/</span>
-            <span className={`font-data-mono text-[11px] font-bold ${isLiveApi ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {isLiveApi ? 'SPRING BOOT DETERMINISTIC ENGINE' : 'DEMO ANALYSIS (SYNTHETIC)'}
+            <span className="text-outline">/</span>
+            <span className={`font-semibold ${isLiveApi ? 'text-emerald-400' : 'text-amber-400'}`}>
+              {isLiveApi ? 'Live Attribution Engine' : 'Reference Case Study'}
             </span>
           </div>
-          <h1 className="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">
-            Persona Resolution Assessment
+          <h1 className="text-2xl font-bold text-on-surface tracking-tight">
+            Cross-Persona Connection Analysis
           </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1.5 max-w-2xl">
-            Algorithmic 4-factor attribution matrix evaluating the mathematical probability that{' '}
-            <strong className="text-tertiary">@{sourcePersona.handle}</strong> and{' '}
-            <strong className="text-primary">@{targetPersona.handle}</strong> represent the same physical
-            threat actor.
+          <p className="text-xs text-on-surface-variant mt-1 font-sans">
+            Evaluating investigative indicators correlating online identities across darknet platforms
           </p>
         </div>
 
-        {/* Persona Selector Toolbar & Action Buttons */}
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Source Persona Dropdown */}
-          <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded border border-outline-variant text-xs font-label-caps">
-            <span className="text-outline">SRC:</span>
+        {/* Persona Selectors Toolbar */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/60 text-xs font-mono">
+            <span className="text-outline font-semibold">Persona A:</span>
             <select
               value={sourceId}
               onChange={(e) => setSourceId(e.target.value)}
@@ -252,9 +310,8 @@ function LinkageContent() {
             </select>
           </div>
 
-          {/* Target Persona Dropdown */}
-          <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded border border-outline-variant text-xs font-label-caps">
-            <span className="text-outline">TGT:</span>
+          <div className="flex items-center gap-1.5 bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/60 text-xs font-mono">
+            <span className="text-outline font-semibold">Persona B:</span>
             <select
               value={targetId}
               onChange={(e) => setTargetId(e.target.value)}
@@ -268,376 +325,396 @@ function LinkageContent() {
             </select>
           </div>
 
-          <Link
-            href="/export"
-            className="btn-secondary px-3.5 py-2 rounded text-body-sm font-body-sm flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-[16px]">download</span>
-            <span>Export Report</span>
-          </Link>
-
           <button
             onClick={() => runAnalysis(sourceId, targetId)}
             disabled={isComputing}
-            className="btn-primary px-4 py-2 rounded text-body-sm font-body-sm font-semibold flex items-center gap-1.5"
+            className="btn-primary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px]">
               {isComputing ? 'sync' : 'refresh'}
             </span>
-            <span>{isComputing ? 'Computing...' : 'Re-Run Matrix'}</span>
+            <span>{isComputing ? 'Analyzing...' : 'Recalculate Connection'}</span>
           </button>
         </div>
       </div>
 
-      {/* Bento Grid Layout (Exact Stitch Bento) */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* Main Confidence Gauge Widget (Col Span 4) */}
-        <div className="col-span-12 lg:col-span-4 bg-surface-container-low border border-outline-variant rounded-xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
-          {/* Abstract Radial Glow */}
-          <div
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              backgroundImage: 'radial-gradient(circle at 50% -20%, #4d8eff 0%, transparent 70%)',
-            }}
-          ></div>
-
-          <div className="font-label-caps text-label-caps text-on-surface-variant tracking-wider uppercase mb-6 self-start w-full border-b border-outline-variant pb-2 font-bold">
-            Result Designation
-          </div>
-
-          {/* SVG Circular Gauge */}
-          <div className="relative w-48 h-48 flex items-center justify-center mb-4">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" fill="none" r="45" stroke="#2d3449" strokeWidth="8" />
-              <circle
-                cx="50"
-                cy="50"
-                fill="none"
-                r="45"
-                stroke={safeScore >= 85 ? '#10b981' : safeScore >= 70 ? '#4d8eff' : '#f59e0b'}
-                strokeDasharray="282.7"
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                strokeWidth="8"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display-lg text-display-lg font-bold text-on-surface">
-                {safeScore.toFixed(0)}%
+      {/* 2. Persona A ↕ Persona B & Connection Confidence Hero Card */}
+      <div className="card-panel rounded-xl p-6 border-outline-variant/60 bg-surface-container shadow-sm flex flex-col gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          {/* Persona A Card */}
+          <div className="col-span-12 md:col-span-4 p-5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-outline uppercase font-bold tracking-wider">
+                Persona A
               </span>
-              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase text-[10px]">
-                Confidence
+              <span className="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/30 font-mono text-[10px] font-bold">
+                {sourcePersona.platform}
               </span>
             </div>
-          </div>
-
-          {/* Attribution Badge */}
-          <div
-            className={`px-5 py-2 rounded-full font-title-sm text-title-sm font-bold flex items-center gap-2 mb-2 ${
-              safeScore >= 85
-                ? 'bg-emerald-950/60 border border-emerald-500/50 text-emerald-300'
-                : 'bg-amber-950/60 border border-amber-500/50 text-amber-300'
-            }`}
-          >
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-              verified
-            </span>
-            <span>{safeScore >= 85 ? 'High-Confidence Linkage' : 'Potential Linkage'}</span>
-          </div>
-
-          {/* Confidence Band Indicator */}
-          <div className="flex items-center gap-4 w-full mt-4 bg-surface-container p-3 rounded border border-outline-variant/40">
-            <span className="font-label-caps text-label-caps text-on-surface-variant w-14">Band:</span>
-            <div className="flex-1 flex gap-1 h-2">
-              <div className="h-full bg-[#10b981] flex-1 rounded-l"></div>
-              <div className="h-full bg-primary flex-1"></div>
-              <div className="h-full bg-[#f59e0b] flex-1 rounded-r opacity-40"></div>
-            </div>
-            <span className="font-label-caps text-label-caps text-emerald-400 font-bold">
-              {analysis?.confidenceLevel || 'VERY_HIGH'}
-            </span>
-          </div>
-        </div>
-
-        {/* Persona Comparison Cards (Col Span 8) */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col md:flex-row gap-6 items-stretch">
-          {/* Source Persona */}
-          <div className="flex-1 bg-surface-container-low border border-outline-variant rounded-xl p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-4 border-b border-outline-variant pb-3">
-              <span className="font-label-caps text-label-caps text-on-surface-variant tracking-wider font-bold">
-                SOURCE PERSONA
-              </span>
-              <span className="px-2 py-0.5 bg-surface-variant rounded text-[10px] font-data-mono text-on-surface">
-                ID: {sourcePersona.id.slice(0, 8)}
-              </span>
-            </div>
-
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-14 h-14 rounded bg-surface-variant border border-outline-variant flex items-center justify-center text-tertiary shrink-0">
-                <span className="material-symbols-outlined text-[28px]">person</span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-tertiary/10 border border-tertiary/30 flex items-center justify-center text-tertiary shrink-0">
+                <span className="material-symbols-outlined text-[24px]">person</span>
               </div>
               <div>
-                <h2 className="font-title-sm text-title-sm font-bold text-tertiary">
+                <div className="text-base font-bold font-mono text-tertiary">
                   @{sourcePersona.handle}
-                </h2>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                  Active: {sourcePersona.platform}
-                </p>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(sourcePersona.tags || []).map((t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-0.5 bg-surface-container rounded border border-outline-variant text-[10px] font-label-caps text-on-surface-variant"
-                    >
-                      {t}
-                    </span>
-                  ))}
+                </div>
+                <div className="text-xs text-outline font-sans">
+                  {sourcePersona.actorName}
                 </div>
               </div>
             </div>
-
-            <div className="mt-auto space-y-2 pt-3 border-t border-outline-variant/40 font-data-mono text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">First Seen:</span>
-                <span className="text-on-surface">{sourcePersona.firstSeen}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Key PGP:</span>
-                <span className="text-on-surface">{sourcePersona.pgpKey}</span>
-              </div>
+            <div className="pt-2 border-t border-outline-variant/40 font-mono text-[11px] text-outline flex justify-between">
+              <span>PGP Subkey:</span>
+              <span className="text-on-surface font-semibold">{sourcePersona.pgpKey}</span>
             </div>
           </div>
 
-          {/* Connector Icon */}
-          <div className="hidden md:flex flex-col items-center justify-center -mx-3 z-10">
-            <div className="w-8 h-8 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center shadow-lg text-primary">
-              <span className="material-symbols-outlined text-[18px]">compare_arrows</span>
+          {/* ↕ Connection Flow Indicator & Confidence Meter */}
+          <div className="col-span-12 md:col-span-4 flex flex-col items-center justify-center text-center px-2">
+            <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/80 flex items-center justify-center text-primary shadow mb-3">
+              <span className="material-symbols-outlined text-[22px]">sync_alt</span>
+            </div>
+
+            <span className="font-mono text-xs text-outline uppercase tracking-wider font-bold mb-1">
+              Connection Confidence
+            </span>
+
+            <div className="font-mono text-4xl font-black text-on-surface my-1">
+              {safeScore.toFixed(0)}%
+            </div>
+
+            <div
+              className={`px-3.5 py-1 rounded-full font-mono text-xs font-bold flex items-center gap-1.5 mt-1 ${
+                isStrongConnection
+                  ? 'bg-emerald-500/15 border border-emerald-500/40 text-emerald-300'
+                  : 'bg-amber-500/15 border border-amber-500/40 text-amber-300'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                {isStrongConnection ? 'verified' : 'help'}
+              </span>
+              <span>{isStrongConnection ? 'STRONG CONNECTION' : 'MODERATE CONNECTION'}</span>
             </div>
           </div>
 
-          {/* Target Persona */}
-          <div className="flex-1 bg-surface-container-low border border-outline-variant rounded-xl p-5 flex flex-col">
-            <div className="flex items-center justify-between mb-4 border-b border-outline-variant pb-3">
-              <span className="font-label-caps text-label-caps text-on-surface-variant tracking-wider font-bold">
-                TARGET PERSONA
+          {/* Persona B Card */}
+          <div className="col-span-12 md:col-span-4 p-5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-xs text-outline uppercase font-bold tracking-wider">
+                Persona B
               </span>
-              <span className="px-2 py-0.5 bg-surface-variant rounded text-[10px] font-data-mono text-on-surface">
-                ID: {targetPersona.id.slice(0, 8)}
+              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30 font-mono text-[10px] font-bold">
+                {targetPersona.platform}
               </span>
             </div>
-
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-14 h-14 rounded bg-surface-variant border border-outline-variant flex items-center justify-center text-primary shrink-0">
-                <span className="material-symbols-outlined text-[28px]">person_check</span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                <span className="material-symbols-outlined text-[24px]">person_check</span>
               </div>
               <div>
-                <h2 className="font-title-sm text-title-sm font-bold text-primary">
+                <div className="text-base font-bold font-mono text-primary">
                   @{targetPersona.handle}
-                </h2>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                  Active: {targetPersona.platform}
-                </p>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {(targetPersona.tags || []).map((t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-0.5 bg-surface-container rounded border border-outline-variant text-[10px] font-label-caps text-on-surface-variant"
-                    >
-                      {t}
-                    </span>
-                  ))}
+                </div>
+                <div className="text-xs text-outline font-sans">
+                  {targetPersona.actorName}
                 </div>
               </div>
             </div>
-
-            <div className="mt-auto space-y-2 pt-3 border-t border-outline-variant/40 font-data-mono text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">First Seen:</span>
-                <span className="text-on-surface">{targetPersona.firstSeen}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-on-surface-variant">Crypto Wallet:</span>
-                <span className="text-on-surface">{targetPersona.wallet}</span>
-              </div>
+            <div className="pt-2 border-t border-outline-variant/40 font-mono text-[11px] text-outline flex justify-between">
+              <span>PGP Subkey:</span>
+              <span className="text-on-surface font-semibold">{targetPersona.pgpKey}</span>
             </div>
-          </div>
-        </div>
-
-        {/* AI Explanation Block (Col Span 12, Exact Stitch AI Block) */}
-        <div className="col-span-12 bg-surface-container border border-primary/30 rounded-xl p-5 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
-          <div className="flex items-start gap-4">
-            <span
-              className="material-symbols-outlined text-primary mt-1 text-[24px]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              smart_toy
-            </span>
-            <div>
-              <h3 className="font-title-sm text-title-sm font-bold text-on-surface mb-2">
-                Gemini Forensic AI Synthesis &amp; Reasoning
-              </h3>
-              <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                {analysis?.aiExplanationSummary || FALLBACK_LINKAGE.aiExplanationSummary}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 4 Deterministic Factor Contribution Cards */}
-        <div className="col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Factor 1: Identifiers */}
-          <div className="card-panel p-4 flex flex-col gap-2 border-outline-variant bg-surface-container-low">
-            <div className="flex justify-between items-center text-outline text-xs font-label-caps font-bold">
-              <span>IDENTIFIERS (35%)</span>
-              <span className="material-symbols-outlined text-[16px] text-tertiary">key</span>
-            </div>
-            <div className="font-display-lg text-[22px] font-bold text-on-surface">
-              {Number(identifierScore).toFixed(2)} / 35.00
-            </div>
-            <div className="confidence-meter mt-1">
-              <div
-                className="confidence-fill conf-high"
-                style={{ width: `${Math.min(100, Math.max(0, (Number(identifierScore) / 35) * 100))}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-outline mt-1 leading-relaxed">
-              Matching PGP subkeys, cryptocurrency deposit addresses, and Tox IDs.
-            </p>
-          </div>
-
-          {/* Factor 2: Stylometry */}
-          <div className="card-panel p-4 flex flex-col gap-2 border-outline-variant bg-surface-container-low">
-            <div className="flex justify-between items-center text-outline text-xs font-label-caps font-bold">
-              <span>STYLOMETRY (25%)</span>
-              <span className="material-symbols-outlined text-[16px] text-primary">psychology</span>
-            </div>
-            <div className="font-display-lg text-[22px] font-bold text-on-surface">
-              {Number(stylometricScore).toFixed(2)} / 25.00
-            </div>
-            <div className="confidence-meter mt-1">
-              <div
-                className="confidence-fill conf-high"
-                style={{ width: `${Math.min(100, Math.max(0, (Number(stylometricScore) / 25) * 100))}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-outline mt-1 leading-relaxed">
-              Cosine similarity on vocabulary richness, punctuation ratios, and greeting formulas.
-            </p>
-          </div>
-
-          {/* Factor 3: Behavior */}
-          <div className="card-panel p-4 flex flex-col gap-2 border-outline-variant bg-surface-container-low">
-            <div className="flex justify-between items-center text-outline text-xs font-label-caps font-bold">
-              <span>BEHAVIOR (20%)</span>
-              <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">schedule</span>
-            </div>
-            <div className="font-display-lg text-[22px] font-bold text-on-surface">
-              {Number(behavioralScore).toFixed(2)} / 20.00
-            </div>
-            <div className="confidence-meter mt-1">
-              <div
-                className="confidence-fill conf-high"
-                style={{ width: `${Math.min(100, Math.max(0, (Number(behavioralScore) / 20) * 100))}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-outline mt-1 leading-relaxed">
-              Diurnal posting timezone alignment (UTC+3 Moscow Standard Time).
-            </p>
-          </div>
-
-          {/* Factor 4: Infrastructure */}
-          <div className="card-panel p-4 flex flex-col gap-2 border-outline-variant bg-surface-container-low">
-            <div className="flex justify-between items-center text-outline text-xs font-label-caps font-bold">
-              <span>INFRASTRUCTURE (20%)</span>
-              <span className="material-symbols-outlined text-[16px] text-[#06b6d4]">dns</span>
-            </div>
-            <div className="font-display-lg text-[22px] font-bold text-on-surface">
-              {Number(infrastructureScore).toFixed(2)} / 20.00
-            </div>
-            <div className="confidence-meter mt-1">
-              <div
-                className="confidence-fill conf-high"
-                style={{ width: `${Math.min(100, Math.max(0, (Number(infrastructureScore) / 20) * 100))}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-outline mt-1 leading-relaxed">
-              Tor Onion v3 hidden service mirrors and hosting ASN co-location.
-            </p>
-          </div>
-        </div>
-
-        {/* Evidence Matrix Table (Col Span 12) */}
-        <div className="col-span-12 card-panel rounded-lg p-5 border-outline-variant bg-surface-container">
-          <div className="flex justify-between items-center mb-4 border-b border-outline-variant pb-3">
-            <div>
-              <h3 className="font-title-sm text-title-sm font-bold text-on-surface">
-                Attribution Evidence Matrix
-              </h3>
-              <p className="font-body-sm text-body-sm text-outline">
-                Deterministic forensic indicators weighted according to the SIH scoring specification
-              </p>
-            </div>
-            <span className="font-label-caps text-xs text-primary font-mono font-bold">
-              TOTAL POINTS: {safeScore.toFixed(2)} / 100.00
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse font-body-sm">
-              <thead>
-                <tr className="border-b border-outline-variant bg-surface-container-low">
-                  <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                    FACTOR CATEGORY
-                  </th>
-                  <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                    EVIDENCE FINDING
-                  </th>
-                  <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                    POINTS CONTRIBUTED
-                  </th>
-                  <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                    SOURCE RELIABILITY
-                  </th>
-                  <th className="font-label-caps text-label-caps text-outline py-2.5 px-3">
-                    TIMESTAMP
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/30 font-body-sm">
-                {evidenceList.map((item, idx) => (
-                  <tr key={item.id || idx} className="interactive-row">
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded font-label-caps text-[10px] bg-surface-container-highest border border-outline-variant text-primary font-bold">
-                        {item.factorCategory}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3">
-                      <div className="font-semibold text-on-surface text-body-md">{item.title}</div>
-                      <div className="text-[12px] text-outline mt-0.5">{item.details}</div>
-                      {item.evidenceSnippet && (
-                        <div className="text-[11px] font-mono text-tertiary bg-surface-dim p-2 rounded border border-outline-variant/30 mt-1.5 break-all">
-                          {item.evidenceSnippet}
-                        </div>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 font-data-mono font-bold text-emerald-400 text-[13px]">
-                      +{Number(item.contributionPoints ?? 0).toFixed(2)} pts
-                    </td>
-                    <td className="py-3 px-3 font-data-mono text-[11px] text-on-surface-variant">
-                      {item.sourceReliability || 'Verified Sensor'}
-                    </td>
-                    <td className="py-3 px-3 font-data-mono text-[11px] text-outline whitespace-nowrap">
-                      {formatIsoDate(item.observedAt)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
+
+      {/* 3. Why do we see this connection? (4 Plain-English Factor Cards) */}
+      <div className="flex flex-col gap-3">
+        <div>
+          <h2 className="font-mono text-sm font-bold text-on-surface uppercase tracking-wider">
+            Why do we see this connection?
+          </h2>
+          <p className="text-xs text-outline mt-0.5">
+            Breakdown of core investigative signals comparing Persona A and Persona B
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Factor 1 */}
+          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-xs font-bold">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>Identity / Username Match</span>
+              </div>
+              <span className="font-mono text-xs font-bold text-on-surface">
+                {Number(identifierScore).toFixed(1)} / 35
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant font-sans leading-relaxed">
+              Shared cryptographic PGP subkeys, cryptocurrency deposit addresses, and matching handles.
+            </p>
+          </div>
+
+          {/* Factor 2 */}
+          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-xs font-bold">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>Writing Style Match</span>
+              </div>
+              <span className="font-mono text-xs font-bold text-on-surface">
+                {Number(stylometricScore).toFixed(1)} / 25
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant font-sans leading-relaxed">
+              Aligned vocabulary richness, sentence structure, punctuation habits, and Russian/English syntax.
+            </p>
+          </div>
+
+          {/* Factor 3 */}
+          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-xs font-bold">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>Activity Pattern Match</span>
+              </div>
+              <span className="font-mono text-xs font-bold text-on-surface">
+                {Number(behavioralScore).toFixed(1)} / 20
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant font-sans leading-relaxed">
+              Coinciding UTC+3 business hour distributions and active darknet posting schedules.
+            </p>
+          </div>
+
+          {/* Factor 4 */}
+          <div className="p-4 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-emerald-400 font-mono text-xs font-bold">
+                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                <span>Technical Connection</span>
+              </div>
+              <span className="font-mono text-xs font-bold text-on-surface">
+                {Number(infrastructureScore).toFixed(1)} / 20
+              </span>
+            </div>
+            <p className="text-xs text-on-surface-variant font-sans leading-relaxed">
+              Shared hosting infrastructure, Tor Onion v3 service mirrors, and backend network hosts.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. AI Investigation Summary */}
+      <div className="card-panel rounded-xl p-5 border-primary/40 bg-surface-container shadow-sm flex flex-col gap-3 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-1.5 h-full bg-primary" />
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+              <span className="material-symbols-outlined text-[18px]">psychology</span>
+            </div>
+            <div>
+              <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                AI Investigation Summary
+              </h3>
+              <span className="text-[10px] font-mono text-primary font-semibold">
+                Synthesized Cross-Platform Analysis
+              </span>
+            </div>
+          </div>
+          <span className="px-2.5 py-0.5 rounded bg-surface-container-high border border-outline-variant/40 font-mono text-[10px] text-outline font-semibold">
+            Automated Synthesis
+          </span>
+        </div>
+
+        {/* Real Backend Gemini Explanation */}
+        <div className="p-3.5 rounded-lg bg-surface-container-low border border-outline-variant/40">
+          <p className="text-xs text-on-surface-variant leading-relaxed font-sans">
+            {analysis?.aiExplanationSummary || FALLBACK_LINKAGE.aiExplanationSummary}
+          </p>
+        </div>
+
+        {/* Required Disclaimer */}
+        <div className="flex items-center gap-2 text-[11px] font-mono text-outline/90 bg-surface-container-lowest px-3 py-2 rounded-lg border border-outline-variant/30">
+          <span className="material-symbols-outlined text-[15px] text-amber-400 shrink-0">
+            info
+          </span>
+          <span>AI-generated summary. Review the supporting evidence before drawing conclusions.</span>
+        </div>
+
+        {/* Expandable Advanced AI Details */}
+        <details className="pt-2 border-t border-outline-variant/30 text-[11px] font-mono text-outline cursor-pointer">
+          <summary className="hover:text-primary font-semibold flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">expand_more</span>
+            <span>Advanced AI Details</span>
+          </summary>
+          <div className="mt-2 p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/40 space-y-1.5 text-[10px] text-on-surface-variant">
+            <div className="flex justify-between">
+              <span className="text-outline">Synthesis Status:</span>
+              <span className="text-emerald-400 font-semibold">Complete</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-outline">Reasoning Signals:</span>
+              <span className="text-primary font-semibold">4 Factors Correlated (Identity, Writing Style, Activity, Technical)</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-outline">Forensic Confidence Base:</span>
+              <span className="text-on-surface font-semibold">{safeScore.toFixed(2)} / 100.00</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-outline">Execution Context:</span>
+              <span className="text-on-surface">Deterministic Multi-Signal Cross-Forum Synthesis</span>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      {/* 5. Supporting Evidence Cards */}
+      <div className="card-panel rounded-xl p-5 border-outline-variant/60 bg-surface-container shadow-sm flex flex-col gap-4">
+        <div className="flex justify-between items-center border-b border-outline-variant/40 pb-3">
+          <div>
+            <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+              Supporting Evidence
+            </h3>
+            <p className="text-xs text-outline mt-0.5">
+              Forensic evidence and observations contributing to this connection
+            </p>
+          </div>
+          <span className="text-xs text-primary font-mono font-bold bg-primary/10 px-2.5 py-1 rounded border border-primary/30">
+            TOTAL SCORE: {safeScore.toFixed(2)} / 100.00
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {evidenceList.map((item, idx) => (
+            <div
+              key={item.id || idx}
+              className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-2.5"
+            >
+              <div className="flex items-center justify-between font-mono text-xs">
+                <span className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/50 text-primary font-bold text-[10px]">
+                  {item.factorCategory}
+                </span>
+                <span className="text-emerald-400 font-bold">
+                  +{Number(item.contributionPoints ?? 0).toFixed(2)} pts
+                </span>
+              </div>
+
+              <div>
+                <h4 className="font-bold text-on-surface text-xs">{item.title}</h4>
+                <p className="text-xs text-outline mt-0.5 font-sans leading-relaxed">{item.details}</p>
+              </div>
+
+              {item.evidenceSnippet && (
+                <div className="text-[11px] font-mono text-tertiary bg-surface-container-lowest p-2.5 rounded border border-outline-variant/40 break-all select-all">
+                  {item.evidenceSnippet}
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-[10px] font-mono text-outline">
+                <span>Reliability: {item.sourceReliability || 'Verified Sensor'}</span>
+                <span>{formatIsoDate(item.observedAt)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 6. Chronological Timeline */}
+      <div className="card-panel rounded-xl p-5 border-outline-variant/60 bg-surface-container shadow-sm flex flex-col gap-4">
+        <div>
+          <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+            Chronological Timeline
+          </h3>
+          <p className="text-xs text-outline mt-0.5">
+            Sequential cross-platform activity, key announcements, and migration events
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {timelineEvents.map((tl) => (
+            <div
+              key={tl.id}
+              className="p-3.5 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1.5"
+            >
+              <div className="flex items-center justify-between font-mono text-xs">
+                <span className="text-tertiary font-bold">@{tl.personaHandle}</span>
+                <span className="text-outline">{formatIsoDate(tl.eventTimestamp)}</span>
+              </div>
+              <div className="font-bold text-on-surface text-xs font-sans">{tl.title}</div>
+              <p className="text-xs text-on-surface-variant leading-relaxed font-sans">{tl.description}</p>
+              <div className="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-[11px] font-mono text-outline">
+                <span>Source: {tl.sourceReference}</span>
+                <span className="text-primary font-bold">{tl.severity}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 7. Expandable Section: Advanced Analysis Details */}
+      <details className="card-panel rounded-xl p-5 border-outline-variant/60 bg-surface-container shadow-sm cursor-pointer">
+        <summary className="font-mono text-xs font-bold text-primary uppercase tracking-wider hover:underline flex items-center gap-2">
+          <span className="material-symbols-outlined text-[18px]">tune</span>
+          <span>Advanced Analysis Details &amp; Technical Scoring Model</span>
+        </summary>
+
+        <div className="mt-4 pt-4 border-t border-outline-variant/40 space-y-4 font-mono text-xs">
+          <div>
+            <h4 className="text-on-surface font-bold mb-2">Multi-Factor Weighting Model</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/40">
+                <div className="text-outline text-[11px]">Factor 1</div>
+                <div className="text-on-surface font-bold mt-0.5">Identifier Similarity</div>
+                <div className="text-tertiary font-bold text-sm mt-1">35% Weight</div>
+                <div className="text-[10px] text-outline mt-1">Points: {Number(identifierScore).toFixed(2)} / 35.00</div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/40">
+                <div className="text-outline text-[11px]">Factor 2</div>
+                <div className="text-on-surface font-bold mt-0.5">Stylometric Similarity</div>
+                <div className="text-primary font-bold text-sm mt-1">25% Weight</div>
+                <div className="text-[10px] text-outline mt-1">Points: {Number(stylometricScore).toFixed(2)} / 25.00</div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/40">
+                <div className="text-outline text-[11px]">Factor 3</div>
+                <div className="text-on-surface font-bold mt-0.5">Behavioral Similarity</div>
+                <div className="text-amber-400 font-bold text-sm mt-1">20% Weight</div>
+                <div className="text-[10px] text-outline mt-1">Points: {Number(behavioralScore).toFixed(2)} / 20.00</div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-surface-container-low border border-outline-variant/40">
+                <div className="text-outline text-[11px]">Factor 4</div>
+                <div className="text-on-surface font-bold mt-0.5">Infrastructure Similarity</div>
+                <div className="text-cyan-400 font-bold text-sm mt-1">20% Weight</div>
+                <div className="text-[10px] text-outline mt-1">Points: {Number(infrastructureScore).toFixed(2)} / 20.00</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Analytical Indicator Disclaimer */}
+          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 space-y-1 font-sans text-xs leading-relaxed">
+            <div className="font-bold flex items-center gap-1.5 font-mono text-amber-300">
+              <span className="material-symbols-outlined text-[16px]">info</span>
+              <span>Important Analytical Disclaimer</span>
+            </div>
+            <p>
+              Connection Confidence and factor similarity scores are mathematical and forensic analytical indicators intended to guide threat intelligence workflows. They represent probabilistic correlations and do not constitute definitive legal proof of physical identity without independent corroborating evidence.
+            </p>
+          </div>
+
+          <div className="text-[11px] text-outline space-y-1 pt-1">
+            <div>Linkage UUID: {analysis?.id || 'link-lb-demo'}</div>
+            <div>Source Persona ID: {sourceId}</div>
+            <div>Target Persona ID: {targetId}</div>
+            <div>Evaluation Timestamp: {analysis?.computedAt || new Date().toISOString()}</div>
+          </div>
+        </div>
+      </details>
     </div>
   );
 }
@@ -647,7 +724,7 @@ export default function LinkagePage() {
     <Suspense
       fallback={
         <div className="card-panel p-12 text-center text-xs font-mono text-outline">
-          Loading AI Linkage Analysis...
+          Loading Connection Analysis...
         </div>
       }
     >

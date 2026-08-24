@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/services/api';
 import { GraphNode, GraphEdge, RelationshipGraph } from '@/types';
@@ -19,7 +19,7 @@ const FALLBACK_GRAPH: RelationshipGraph = {
         confidence: 92.5,
         motive: 'Financial Extortion',
         firstSeen: '2022-06-15',
-        status: 'ACTIVE',
+        status: 'Active',
       },
     },
     {
@@ -31,6 +31,7 @@ const FALLBACK_GRAPH: RelationshipGraph = {
         confidence: 98.0,
         platform: 'XSS.is Underground',
         reputation: '98.5%',
+        status: 'Migrated',
         role: 'Affiliate Recruitment',
       },
     },
@@ -43,6 +44,7 @@ const FALLBACK_GRAPH: RelationshipGraph = {
         confidence: 94.0,
         platform: 'Ramp Forum',
         reputation: '94.0%',
+        status: 'Active',
         role: 'Migrated Operator',
       },
     },
@@ -53,30 +55,33 @@ const FALLBACK_GRAPH: RelationshipGraph = {
       subType: 'PGP_KEY',
       data: {
         confidence: 99.0,
+        status: 'Verified',
         fingerprint: '94F8 2B31 8AC4 701E D5E2 1198 4A72 B5C1 09E8 33DF',
         algorithm: 'RSA-4096',
       },
     },
     {
       id: 'node-id-btc',
-      label: 'BTC: bc1qxy2kg...',
+      label: 'Bitcoin: bc1qxy2kg...',
       type: 'IDENTIFIER',
       subType: 'CRYPTO_WALLET',
       data: {
         confidence: 95.0,
+        status: 'Active Deposit',
         address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
         balance: '28.45 BTC',
       },
     },
     {
       id: 'node-infra-onion',
-      label: 'lockbit7z...onion',
+      label: 'Tor Onion Mirror v3',
       type: 'INFRASTRUCTURE',
       subType: 'ONION_V3',
       data: {
         confidence: 90.0,
+        status: 'Online',
         url: 'http://lockbit7z275w3k3jshv5729fksu627ahskd8276f5skdl27f6sjd8.onion',
-        ip: '185.220.101.44',
+        ip: '185.220.101.44 (AS200651)',
       },
     },
   ],
@@ -132,6 +137,38 @@ const FALLBACK_GRAPH: RelationshipGraph = {
   ],
 };
 
+function getSimpleTypeLabel(type: string): string {
+  switch (type) {
+    case 'ACTOR':
+      return 'Threat Actor';
+    case 'PERSONA':
+      return 'Online Persona';
+    case 'IDENTIFIER':
+      return 'Identifier';
+    case 'INFRASTRUCTURE':
+      return 'Infrastructure';
+    case 'EVIDENCE':
+      return 'Evidence';
+    default:
+      return type.replace(/_/g, ' ');
+  }
+}
+
+function getRelationshipLabel(rel: string): string {
+  switch (rel) {
+    case 'CONTROLS':
+      return 'Operates';
+    case 'USES_IDENTIFIER':
+      return 'Uses Identifier';
+    case 'OPERATES_INFRASTRUCTURE':
+      return 'Hosts On';
+    case 'MIGRATED_TO':
+      return 'Migrated To';
+    default:
+      return rel.replace(/_/g, ' ');
+  }
+}
+
 export default function RelationshipGraphPage() {
   const params = useParams();
   const actorId = (params?.id as string) || '2bee3f4c-1923-40da-a2e9-78b9a1e9eb79';
@@ -166,56 +203,77 @@ export default function RelationshipGraphPage() {
 
   // Positions on canvas
   const nodePositions: Record<string, { x: number; y: number }> = {
-    'node-actor': { x: 380, y: 260 },
-    'node-p1': { x: 200, y: 140 },
-    'node-p2': { x: 200, y: 380 },
-    'node-id-pgp': { x: 600, y: 150 },
-    'node-id-btc': { x: 600, y: 360 },
-    'node-infra-onion': { x: 420, y: 460 },
+    'node-actor': { x: 420, y: 260 },
+    'node-p1': { x: 220, y: 150 },
+    'node-p2': { x: 220, y: 390 },
+    'node-id-pgp': { x: 620, y: 160 },
+    'node-id-btc': { x: 620, y: 370 },
+    'node-infra-onion': { x: 420, y: 470 },
   };
 
   const getNodePos = (id: string, idx: number) => {
     if (nodePositions[id]) return nodePositions[id];
-    // Dynamic circular layout fallback
     const angle = (idx / (graph.nodes.length || 1)) * 2 * Math.PI;
     return {
-      x: 400 + 220 * Math.cos(angle),
+      x: 420 + 220 * Math.cos(angle),
       y: 280 + 180 * Math.sin(angle),
     };
   };
 
+  // Find related entities for selected node
+  const relatedEdges = selectedNode
+    ? graph.edges.filter((e) => e.source === selectedNode.id || e.target === selectedNode.id)
+    : [];
+
+  const relatedEntities = relatedEdges.map((e) => {
+    const isSource = e.source === selectedNode?.id;
+    const otherNodeId = isSource ? e.target : e.source;
+    const otherNode = graph.nodes.find((n) => n.id === otherNodeId);
+    return {
+      node: otherNode,
+      relationship: getRelationshipLabel(e.relationship),
+      confidence: e.confidence,
+    };
+  });
+
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] -m-margin-desktop overflow-hidden relative">
       {/* Top Controls Bar */}
-      <div className="bg-surface-dim px-6 py-2.5 border-b border-outline-variant flex items-center justify-between z-20 shrink-0">
+      <div className="bg-surface-dim px-6 py-2.5 border-b border-outline-variant/60 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-[20px]">hub</span>
-          <span className="font-title-sm text-title-sm font-bold text-on-surface">
-            Topological Intelligence Graph
+          <span className="font-mono text-sm font-bold text-on-surface">
+            Relationship Graph
           </span>
-          <span className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant font-label-caps text-[10px] text-primary">
-            {isLiveApi ? 'LIVE GRAPH DATA' : 'DEMO TOPOLOGY'}
+          <span
+            className={`px-2 py-0.5 rounded border font-mono text-[10px] font-bold ${
+              isLiveApi
+                ? 'bg-primary/10 border-primary/30 text-primary'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+            }`}
+          >
+            {isLiveApi ? 'Live Network Topology' : 'Reference Case Study'}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/actors/2bee3f4c-1923-40da-a2e9-78b9a1e9eb79"
-            className="btn-secondary px-3 py-1 text-xs font-label-caps"
+            className="btn-secondary px-3 py-1 text-xs font-mono font-medium"
           >
             <span>LockBit Syndicate</span>
           </Link>
           <Link
             href="/linkage"
-            className="btn-primary px-3 py-1 text-xs font-label-caps flex items-center gap-1"
+            className="btn-primary px-3 py-1 text-xs font-semibold flex items-center gap-1 shadow-sm"
           >
             <span className="material-symbols-outlined text-[16px]">psychology</span>
-            <span>Attribution Linkage</span>
+            <span>Connection Analysis</span>
           </Link>
         </div>
       </div>
 
-      {/* Main Canvas & Inspector Area (Exact Stitch Graph Canvas) */}
+      {/* Main Canvas & Inspector Area */}
       <div className="flex-1 relative bg-surface-container-lowest flex overflow-hidden">
         {/* Canvas Area */}
         <div className="flex-1 relative overflow-hidden" id="graph-canvas">
@@ -239,7 +297,7 @@ export default function RelationshipGraphPage() {
                   refY="5"
                   viewBox="0 0 10 10"
                 >
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#424754"></path>
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#424754" />
                 </marker>
               </defs>
 
@@ -278,12 +336,12 @@ export default function RelationshipGraphPage() {
                   return (
                     <text
                       key={`lbl-${edge.id || i}`}
-                      className="uppercase"
+                      className="font-mono"
                       textAnchor="middle"
                       x={(src.x + tgt.x) / 2}
                       y={(src.y + tgt.y) / 2 - 5}
                     >
-                      {edge.relationship.replace(/_/g, ' ')}
+                      {getRelationshipLabel(edge.relationship)}
                     </text>
                   );
                 })}
@@ -294,6 +352,7 @@ export default function RelationshipGraphPage() {
             {graph.nodes.map((node, idx) => {
               const pos = getNodePos(node.id, idx);
               const isSelected = selectedNode?.id === node.id;
+              const simpleType = getSimpleTypeLabel(node.type);
 
               return (
                 <div
@@ -306,51 +365,59 @@ export default function RelationshipGraphPage() {
                 >
                   {/* Node Icon Avatar */}
                   {node.type === 'ACTOR' && (
-                    <div className="w-16 h-16 rounded-full bg-error-container border-2 border-error flex items-center justify-center shadow-[0_0_15px_rgba(255,180,171,0.25)]">
+                    <div className="w-16 h-16 rounded-full bg-rose-500/20 border-2 border-rose-400 flex items-center justify-center shadow-[0_0_18px_rgba(244,63,94,0.35)]">
                       <span
-                        className="material-symbols-outlined text-error text-[32px]"
+                        className="material-symbols-outlined text-rose-400 text-[32px]"
                         style={{ fontVariationSettings: "'FILL' 1" }}
                       >
-                        person_alert
+                        shield
                       </span>
                     </div>
                   )}
 
                   {node.type === 'PERSONA' && (
-                    <div className="w-12 h-12 rounded-full bg-secondary-container border-2 border-secondary flex items-center justify-center shadow-[0_0_10px_rgba(183,200,225,0.2)]">
-                      <span className="material-symbols-outlined text-on-secondary-container text-[24px]">
-                        face
+                    <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center shadow-[0_0_12px_rgba(183,200,225,0.25)]">
+                      <span className="material-symbols-outlined text-primary text-[24px]">
+                        person
                       </span>
                     </div>
                   )}
 
                   {node.type === 'IDENTIFIER' && (
-                    <div className="w-12 h-12 rotate-45 bg-tertiary-container border-2 border-tertiary flex items-center justify-center shadow-[0_0_10px_rgba(223,116,18,0.25)]">
-                      <span className="material-symbols-outlined -rotate-45 text-on-tertiary-container text-[24px]">
-                        tag
+                    <div className="w-12 h-12 rotate-45 bg-tertiary/20 border-2 border-tertiary flex items-center justify-center shadow-[0_0_12px_rgba(255,183,134,0.3)]">
+                      <span className="material-symbols-outlined -rotate-45 text-tertiary text-[22px]">
+                        key
                       </span>
                     </div>
                   )}
 
                   {node.type === 'INFRASTRUCTURE' && (
-                    <div className="w-12 h-12 rounded-DEFAULT bg-primary-container border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(173,198,255,0.2)]">
-                      <span className="material-symbols-outlined text-on-primary-container text-[24px]">
+                    <div className="w-12 h-12 rounded-lg bg-cyan-500/20 border-2 border-cyan-400 flex items-center justify-center shadow-[0_0_12px_rgba(173,198,255,0.3)]">
+                      <span className="material-symbols-outlined text-cyan-400 text-[22px]">
                         dns
+                      </span>
+                    </div>
+                  )}
+
+                  {node.type === 'EVIDENCE' && (
+                    <div className="w-12 h-12 rounded-lg bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                      <span className="material-symbols-outlined text-emerald-400 text-[22px]">
+                        fact_check
                       </span>
                     </div>
                   )}
 
                   {/* Node Label Badge */}
                   <div
-                    className={`mt-2 px-2.5 py-1 rounded-DEFAULT border text-center whitespace-nowrap ${
+                    className={`mt-2 px-2.5 py-1 rounded-lg border text-center whitespace-nowrap shadow-sm ${
                       isSelected
                         ? 'bg-surface-container-highest border-primary text-primary ring-1 ring-primary'
-                        : 'bg-surface-container-high border-outline-variant text-on-surface'
+                        : 'bg-surface-container-high border-outline-variant/60 text-on-surface'
                     }`}
                   >
-                    <div className="font-label-caps text-xs font-bold">{node.label}</div>
-                    <div className="font-data-mono text-[10px] text-outline">
-                      {node.type} • {Number(node.data?.confidence || 90).toFixed(0)}%
+                    <div className="font-mono text-xs font-bold">{node.label}</div>
+                    <div className="font-mono text-[10px] text-outline">
+                      {simpleType} • {Number(node.data?.confidence || 90).toFixed(0)}%
                     </div>
                   </div>
                 </div>
@@ -360,24 +427,24 @@ export default function RelationshipGraphPage() {
 
           {/* Floating Controls (Zoom / Pan) */}
           <div className="absolute bottom-6 left-6 flex space-x-2 z-20">
-            <div className="bg-surface-container-high border border-outline-variant rounded flex shadow-lg">
+            <div className="bg-surface-container-high border border-outline-variant/60 rounded-lg flex shadow-xl">
               <button
                 onClick={() => setZoomLevel((z) => Math.min(z + 0.15, 1.6))}
-                className="p-2 hover:bg-surface-variant transition-colors border-r border-outline-variant text-on-surface-variant hover:text-on-surface"
+                className="p-2 hover:bg-surface-variant transition-colors border-r border-outline-variant/60 text-on-surface-variant hover:text-on-surface cursor-pointer"
                 title="Zoom In"
               >
                 <span className="material-symbols-outlined text-[20px]">zoom_in</span>
               </button>
               <button
                 onClick={() => setZoomLevel(1)}
-                className="p-2 hover:bg-surface-variant transition-colors border-r border-outline-variant text-on-surface-variant hover:text-on-surface"
+                className="p-2 hover:bg-surface-variant transition-colors border-r border-outline-variant/60 text-on-surface-variant hover:text-on-surface cursor-pointer"
                 title="Reset Zoom"
               >
                 <span className="material-symbols-outlined text-[20px]">fit_screen</span>
               </button>
               <button
                 onClick={() => setZoomLevel((z) => Math.max(z - 0.15, 0.6))}
-                className="p-2 hover:bg-surface-variant transition-colors text-on-surface-variant hover:text-on-surface"
+                className="p-2 hover:bg-surface-variant transition-colors text-on-surface-variant hover:text-on-surface cursor-pointer"
                 title="Zoom Out"
               >
                 <span className="material-symbols-outlined text-[20px]">zoom_out</span>
@@ -385,100 +452,160 @@ export default function RelationshipGraphPage() {
             </div>
           </div>
 
-          {/* Graph Legend (Top Left) */}
-          <div className="absolute top-6 left-6 bg-surface-container-high border border-outline-variant rounded p-3 shadow-lg flex flex-col space-y-2 opacity-90 hover:opacity-100 transition-opacity z-20">
-            <div className="font-label-caps text-on-surface-variant text-[11px] font-bold uppercase">
-              Entity Types
+          {/* Simple Visual Legend (Top Left) */}
+          <div className="absolute top-6 left-6 bg-surface-container-high/95 backdrop-blur border border-outline-variant/60 rounded-xl p-4 shadow-xl flex flex-col space-y-2.5 z-20">
+            <div className="font-mono text-[10px] font-bold text-outline uppercase tracking-wider">
+              Node Type Legend
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3.5 h-3.5 rounded-full border border-error bg-error-container"></div>
-              <span className="font-data-mono text-[11px] text-on-surface">Threat Actor</span>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-3.5 h-3.5 rounded-full border border-rose-400 bg-rose-500/40" />
+              <span className="font-mono text-xs text-on-surface font-semibold">Threat Actor</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3.5 h-3.5 rounded-full border border-secondary bg-secondary-container"></div>
-              <span className="font-data-mono text-[11px] text-on-surface">Darknet Persona</span>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-3.5 h-3.5 rounded-full border border-primary bg-primary/40" />
+              <span className="font-mono text-xs text-on-surface font-semibold">Online Persona</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3.5 h-3.5 rotate-45 border border-tertiary bg-tertiary-container ml-0.5"></div>
-              <span className="font-data-mono text-[11px] text-on-surface ml-1">
-                Crypto / PGP Key
-              </span>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-3.5 h-3.5 rotate-45 border border-tertiary bg-tertiary/40 ml-0.5" />
+              <span className="font-mono text-xs text-on-surface font-semibold ml-0.5">Identifier</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3.5 h-3.5 rounded-DEFAULT border border-primary bg-primary-container"></div>
-              <span className="font-data-mono text-[11px] text-on-surface">Onion Node</span>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-3.5 h-3.5 rounded-sm border border-cyan-400 bg-cyan-500/40" />
+              <span className="font-mono text-xs text-on-surface font-semibold">Infrastructure</span>
+            </div>
+            <div className="flex items-center space-x-2.5">
+              <div className="w-3.5 h-3.5 rounded-sm border border-emerald-400 bg-emerald-500/40" />
+              <span className="font-mono text-xs text-on-surface font-semibold">Evidence</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side Panel: Node Details (Exact Stitch Side Panel) */}
-        <aside className="w-[320px] bg-surface-container border-l border-outline-variant flex flex-col flex-shrink-0 shadow-[-5px_0_25px_-5px_rgba(0,0,0,0.5)] z-20 overflow-y-auto">
+        {/* Right Side Panel: Clean Node Inspector */}
+        <aside className="w-[340px] bg-surface-container border-l border-outline-variant/60 flex flex-col flex-shrink-0 shadow-2xl z-20 overflow-y-auto">
           {/* Panel Header */}
-          <div className="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-dim">
-            <h2 className="font-title-sm text-title-sm font-bold text-on-surface">Node Details</h2>
-            <span className="font-label-caps text-[10px] text-primary">SELECTED</span>
+          <div className="p-4 border-b border-outline-variant/60 flex items-center justify-between bg-surface-dim">
+            <h2 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+              Node Details
+            </h2>
+            <span className="font-mono text-[10px] text-primary font-bold bg-primary/10 px-2 py-0.5 rounded border border-primary/30">
+              SELECTED
+            </span>
           </div>
 
           {/* Panel Content */}
-          <div className="flex-1 p-4 space-y-5 font-body-sm">
+          <div className="flex-1 p-5 space-y-5">
             {selectedNode ? (
               <>
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 rounded bg-surface-container-high border border-outline-variant flex flex-shrink-0 items-center justify-center text-primary">
+                {/* 1. Identity / Node Header */}
+                <div className="flex items-start space-x-3.5">
+                  <div className="w-12 h-12 rounded-xl bg-surface-container-high border border-outline-variant/60 flex flex-shrink-0 items-center justify-center text-primary">
                     <span className="material-symbols-outlined text-[24px]">
                       {selectedNode.type === 'ACTOR'
-                        ? 'person_alert'
+                        ? 'shield'
                         : selectedNode.type === 'PERSONA'
-                        ? 'face'
+                        ? 'person'
                         : selectedNode.type === 'IDENTIFIER'
-                        ? 'tag'
-                        : 'dns'}
+                        ? 'key'
+                        : selectedNode.type === 'INFRASTRUCTURE'
+                        ? 'dns'
+                        : 'fact_check'}
                     </span>
                   </div>
                   <div>
-                    <div className="font-data-mono text-[10px] text-primary uppercase tracking-widest mb-0.5">
-                      {selectedNode.type}
-                    </div>
-                    <div className="font-bold text-on-surface text-body-md break-all leading-tight">
+                    <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30 font-mono text-[10px] font-bold uppercase tracking-wider">
+                      {getSimpleTypeLabel(selectedNode.type)}
+                    </span>
+                    <h3 className="font-bold text-on-surface text-base break-all font-mono mt-1 leading-tight">
                       {selectedNode.label}
-                    </div>
-                    <div className="flex items-center space-x-2 mt-1.5">
-                      <span className="bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-label-caps text-[10px]">
-                        Confidence: {Number(selectedNode.data?.confidence || 90).toFixed(0)}%
-                      </span>
-                    </div>
+                    </h3>
                   </div>
                 </div>
 
-                {/* Properties Table */}
-                <div className="space-y-2 pt-2 border-t border-outline-variant">
-                  <div className="font-label-caps text-[11px] text-outline font-bold uppercase">
-                    Properties & Metadata
+                {/* 2. Status & Connection Confidence */}
+                <div className="grid grid-cols-2 gap-2.5 font-mono text-xs">
+                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-0.5">
+                    <span className="text-[10px] text-outline uppercase font-bold">Status</span>
+                    <span className="font-bold text-emerald-400">
+                      {selectedNode.data?.status || 'Active'}
+                    </span>
                   </div>
-                  <div className="bg-surface-dim rounded p-3 space-y-2 font-data-mono text-[11px] border border-outline-variant/40">
-                    {selectedNode.data &&
-                      Object.entries(selectedNode.data).map(([k, v]) => (
-                        <div key={k} className="flex justify-between gap-2">
-                          <span className="text-outline uppercase">{k}:</span>
-                          <span className="text-on-surface font-semibold truncate">{String(v)}</span>
+                  <div className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex flex-col gap-0.5">
+                    <span className="text-[10px] text-outline uppercase font-bold">Confidence</span>
+                    <span className="font-bold text-primary">
+                      {Number(selectedNode.data?.confidence || 90).toFixed(0)}% Match
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. Related Entities Section */}
+                <div className="space-y-2 pt-2 border-t border-outline-variant/40">
+                  <div className="flex items-center justify-between font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                    <span>Related Entities</span>
+                    <span className="text-outline text-[11px]">({relatedEntities.length})</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {relatedEntities.map((rel, i) => (
+                      <div
+                        key={i}
+                        className="p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center justify-between gap-2"
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <span className="material-symbols-outlined text-outline text-[16px] shrink-0">
+                            arrow_right_alt
+                          </span>
+                          <div className="truncate font-mono text-xs">
+                            <div className="text-on-surface font-semibold truncate">
+                              {rel.node?.label || 'Connected Node'}
+                            </div>
+                            <div className="text-[10px] text-outline">
+                              {rel.relationship} • {getSimpleTypeLabel(rel.node?.type || '')}
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                        {rel.confidence && (
+                          <span className="text-emerald-400 font-mono text-[10px] font-bold shrink-0">
+                            {Number(rel.confidence).toFixed(0)}%
+                          </span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* 4. Additional Node Attributes */}
+                <div className="space-y-2 pt-2 border-t border-outline-variant/40">
+                  <div className="font-mono text-xs text-outline font-bold uppercase tracking-wider">
+                    Additional Attributes
+                  </div>
+                  <div className="bg-surface-container-lowest rounded-xl p-3 space-y-1.5 font-mono text-[11px] border border-outline-variant/40">
+                    {selectedNode.data &&
+                      Object.entries(selectedNode.data)
+                        .filter(([k]) => k !== 'confidence' && k !== 'status')
+                        .map(([k, v]) => (
+                          <div key={k} className="flex justify-between gap-2">
+                            <span className="text-outline uppercase text-[10px]">{k}:</span>
+                            <span className="text-on-surface font-semibold truncate select-all">
+                              {String(v)}
+                            </span>
+                          </div>
+                        ))}
+                  </div>
+                </div>
+
+                {/* 5. Quick Actions */}
                 <div className="space-y-2 pt-2">
                   <Link
                     href={`/linkage`}
-                    className="btn-primary w-full justify-center py-2 text-xs font-label-caps"
+                    className="btn-primary w-full justify-center py-2 text-xs font-mono font-semibold"
                   >
-                    <span>Run AI Persona Linkage</span>
+                    <span>Analyze Persona Connections</span>
                   </Link>
                   <Link
                     href={`/actors/${actorId}`}
-                    className="btn-secondary w-full justify-center py-2 text-xs font-label-caps"
+                    className="btn-secondary w-full justify-center py-2 text-xs font-mono"
                   >
-                    <span>Open Full Dossier</span>
+                    <span>Open Threat Actor Dossier</span>
                   </Link>
                 </div>
               </>

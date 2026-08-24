@@ -189,58 +189,61 @@ function InvestigationContent() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Hero Search Bar (Exact Stitch Hero) */}
+    <div className="flex flex-col gap-6">
+      {/* Hero Search Bar */}
       <div className="w-full max-w-4xl mx-auto">
         <form onSubmit={handleFormSubmit} className="relative">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[24px]">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-[22px]">
             search
           </span>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search across actors, personas, identifiers, and infrastructure..."
-            className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface font-body-md py-4 pl-12 pr-28 rounded shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-on-surface-variant text-body-md"
+            placeholder="Search across threat syndicates, darknet handles, crypto wallets, PGP keys, and onion hosts..."
+            className="w-full bg-surface-container-lowest border border-outline-variant/70 text-on-surface py-3.5 pl-12 pr-28 rounded-xl shadow-inner focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-outline/70 text-sm font-sans"
           />
           <button
             type="submit"
-            className="btn-primary absolute right-3 top-1/2 -translate-y-1/2 px-4 py-2 text-xs font-label-caps"
+            className="btn-primary absolute right-2.5 top-1/2 -translate-y-1/2 px-4 py-2 text-xs font-semibold rounded-lg shadow-sm"
           >
             <span>Search</span>
           </button>
         </form>
 
         {/* Quick chip demo shortcuts */}
-        <div className="flex items-center gap-2 mt-3 text-xs font-label-caps text-on-surface-variant">
-          <span>QUICK SUGGESTIONS:</span>
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs font-mono text-outline">
+          <span className="font-semibold text-on-surface-variant">QUICK FILTERS:</span>
           <button
+            type="button"
             onClick={() => {
               setQuery('bassterlord');
               setSelectedType('ALL');
               executeSearch('bassterlord', 'ALL');
             }}
-            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant hover:border-primary text-primary transition-colors cursor-pointer"
+            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/60 hover:border-primary text-primary transition-colors cursor-pointer"
           >
             @bassterlord
           </button>
           <button
+            type="button"
             onClick={() => {
               setQuery('0x4A72B5C1');
               setSelectedType('IDENTIFIER');
               executeSearch('0x4A72B5C1', 'IDENTIFIER');
             }}
-            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant hover:border-primary text-tertiary transition-colors cursor-pointer"
+            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/60 hover:border-primary text-tertiary transition-colors cursor-pointer"
           >
-            PGP Subkey
+            PGP Subkey 0x4A72B5C1
           </button>
           <button
+            type="button"
             onClick={() => {
               setQuery('LockBit');
               setSelectedType('ACTOR');
               executeSearch('LockBit', 'ACTOR');
             }}
-            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant hover:border-primary text-on-surface transition-colors cursor-pointer"
+            className="px-2 py-0.5 rounded bg-surface-container border border-outline-variant/60 hover:border-primary text-on-surface transition-colors cursor-pointer"
           >
             LockBit Syndicate
           </button>
@@ -249,38 +252,39 @@ function InvestigationContent() {
 
       {/* Main Filter & Results Layout */}
       <div className="flex flex-col lg:flex-row gap-6 w-full max-w-[1400px] mx-auto">
-        {/* Filters Sidebar (Stitch Aside Panel) */}
+        {/* Filters Sidebar */}
         <aside className="w-full lg:w-64 flex-shrink-0 flex flex-col gap-6">
-          <div className="card-panel p-4 flex flex-col gap-5 border-outline-variant">
-            <div className="flex items-center justify-between border-b border-outline-variant pb-3">
-              <h3 className="font-label-caps text-label-caps text-on-surface uppercase">Filters</h3>
+          <div className="card-panel p-4 flex flex-col gap-5 border-outline-variant/60 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+              <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">Search Filters</h3>
               <button
+                type="button"
                 onClick={() => {
                   setSelectedType('ALL');
                   setMinConfidence(0);
                   setQuery('');
                   executeSearch('', 'ALL');
                 }}
-                className="text-primary font-body-sm hover:underline text-xs"
+                className="text-primary font-mono hover:underline text-xs"
               >
-                Clear All
+                Reset
               </button>
             </div>
 
             {/* Entity Type Filter */}
             <div>
-              <h4 className="font-body-sm text-body-sm text-on-surface-variant mb-3 font-semibold">
-                Entity Type
+              <h4 className="font-mono text-[11px] font-semibold text-outline uppercase tracking-wider mb-2.5">
+                Target Entity Type
               </h4>
-              <div className="space-y-2 font-body-sm text-body-sm">
+              <div className="space-y-2 text-xs">
                 {[
-                  { label: 'All Entities', value: 'ALL' },
-                  { label: 'Threat Actors', value: 'ACTOR' },
+                  { label: 'All Indicators', value: 'ALL' },
+                  { label: 'Threat Syndicates', value: 'ACTOR' },
                   { label: 'Darknet Personas', value: 'PERSONA' },
-                  { label: 'Identifiers & Wallets', value: 'IDENTIFIER' },
-                  { label: 'Onion Infrastructure', value: 'INFRASTRUCTURE' },
+                  { label: 'Wallets & PGP Keys', value: 'IDENTIFIER' },
+                  { label: 'Tor Infrastructure', value: 'INFRASTRUCTURE' },
                 ].map((t) => (
-                  <label key={t.value} className="flex items-center gap-2 cursor-pointer group">
+                  <label key={t.value} className="flex items-center gap-2 cursor-pointer group select-none">
                     <input
                       type="radio"
                       name="entityType"
@@ -289,7 +293,7 @@ function InvestigationContent() {
                         setSelectedType(t.value);
                         executeSearch(query, t.value);
                       }}
-                      className="accent-primary"
+                      className="accent-primary cursor-pointer"
                     />
                     <span className="text-on-surface group-hover:text-primary transition-colors">
                       {t.label}
@@ -302,10 +306,10 @@ function InvestigationContent() {
             {/* Min Confidence Slider */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-body-sm text-body-sm text-on-surface-variant font-semibold">
+                <h4 className="font-mono text-[11px] font-semibold text-outline uppercase tracking-wider">
                   Min. Confidence
                 </h4>
-                <span className="font-data-mono text-[12px] font-bold text-primary">
+                <span className="font-mono text-xs font-bold text-primary">
                   {minConfidence}%
                 </span>
               </div>
@@ -317,16 +321,16 @@ function InvestigationContent() {
                 onChange={(e) => setMinConfidence(Number(e.target.value))}
                 className="w-full accent-primary bg-surface-container-lowest h-1.5 rounded-full appearance-none cursor-pointer"
               />
-              <div className="flex justify-between mt-1 font-data-mono text-[10px] text-outline">
-                <span>0%</span>
-                <span>100%</span>
+              <div className="flex justify-between mt-1 font-mono text-[10px] text-outline">
+                <span>0% (All)</span>
+                <span>100% (Exact)</span>
               </div>
             </div>
 
             {/* Data Source Notice */}
-            <div className="pt-3 border-t border-outline-variant text-[11px] font-mono text-outline">
-              <span className="text-primary font-bold">Source: </span>
-              {isLiveApi ? 'Spring Boot REST + Supabase' : 'Offline Demonstration Cache'}
+            <div className="pt-3 border-t border-outline-variant/40 text-[11px] font-mono text-outline">
+              <span className="text-primary font-bold">Index Status: </span>
+              {isLiveApi ? 'Intelligence Feed' : 'Reference Indicator Baseline'}
             </div>
           </div>
         </aside>
@@ -335,53 +339,53 @@ function InvestigationContent() {
         <div className="flex-1 flex flex-col gap-4">
           {/* Results Header */}
           <div className="flex justify-between items-center px-1">
-            <span className="font-body-sm text-body-sm text-on-surface-variant">
-              Found <strong className="text-on-surface">{filteredByConfidence.length}</strong> results
-              for query &quot;{query || 'ALL'}&quot;
+            <span className="text-xs text-on-surface-variant font-mono">
+              Found <strong className="text-primary font-bold">{filteredByConfidence.length}</strong> indicator records
+              {query && <span> for &quot;{query}&quot;</span>}
             </span>
             <div className="flex gap-2">
               <Link
                 href="/export"
-                className="btn-secondary px-3 py-1.5 rounded text-xs font-label-caps flex items-center gap-1"
+                className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5"
               >
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                <span>Export</span>
+                <span className="material-symbols-outlined text-[15px]">download</span>
+                <span>Export Dossier</span>
               </Link>
             </div>
           </div>
 
-          {/* Stitch Data Table */}
-          <div className="card-panel overflow-x-auto border-outline-variant">
-            <table className="w-full text-left border-collapse whitespace-nowrap font-body-sm">
+          {/* Data Table */}
+          <div className="card-panel overflow-x-auto border-outline-variant/60 rounded-xl shadow-sm">
+            <table className="w-full text-left border-collapse whitespace-nowrap text-xs">
               <thead>
-                <tr className="bg-surface-container border-b border-outline-variant">
-                  <th className="px-4 py-3 font-label-caps text-label-caps text-on-surface-variant">
-                    RESULT NAME / INDICATOR
+                <tr className="bg-surface-container-low border-b border-outline-variant/40 text-outline font-mono">
+                  <th className="px-4 py-3 uppercase tracking-wider font-semibold">
+                    Indicator / Moniker
                   </th>
-                  <th className="px-4 py-3 font-label-caps text-label-caps text-on-surface-variant">
-                    TYPE
+                  <th className="px-4 py-3 uppercase tracking-wider font-semibold">
+                    Category
                   </th>
-                  <th className="px-4 py-3 font-label-caps text-label-caps text-on-surface-variant">
-                    ASSOCIATED GROUP
+                  <th className="px-4 py-3 uppercase tracking-wider font-semibold">
+                    Associated Syndicate
                   </th>
-                  <th className="px-4 py-3 font-label-caps text-label-caps text-on-surface-variant w-36">
-                    CONFIDENCE
+                  <th className="px-4 py-3 uppercase tracking-wider font-semibold w-36">
+                    Attribution Score
                   </th>
-                  <th className="px-4 py-3 font-label-caps text-label-caps text-on-surface-variant text-right">
-                    ACTION
+                  <th className="px-4 py-3 uppercase tracking-wider font-semibold text-right">
+                    Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/40">
+              <tbody className="divide-y divide-outline-variant/30">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-outline font-data-mono text-xs">
+                    <td colSpan={5} className="p-8 text-center text-outline font-mono text-xs">
                       Querying threat intelligence database...
                     </td>
                   </tr>
                 ) : filteredByConfidence.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-outline font-data-mono text-xs">
+                    <td colSpan={5} className="p-8 text-center text-outline font-mono text-xs">
                       No threat indicators matched the query &quot;{query}&quot;.
                     </td>
                   </tr>
@@ -394,60 +398,60 @@ function InvestigationContent() {
                         key={`${res.entityId || res.actorId}-${i}`}
                         className="interactive-row transition-colors cursor-pointer"
                       >
-                        <td className="px-4 py-3 font-bold text-on-surface">
+                        <td className="px-4 py-3 font-semibold text-on-surface">
                           <Link
                             href={getEntityLink(res)}
                             className="flex items-center gap-2 hover:text-primary transition-colors"
                           >
-                            <span className="material-symbols-outlined text-primary text-[18px]">
+                            <span className="material-symbols-outlined text-primary text-[17px]">
                               {getEntityIcon(res.resultType)}
                             </span>
                             <span>{res.displayName}</span>
                           </Link>
                           {snippet && (
-                            <div className="text-[11px] font-normal text-outline truncate max-w-md mt-0.5">
+                            <div className="text-[11px] font-normal text-outline truncate max-w-md mt-0.5 font-mono">
                               {snippet}
                             </div>
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-label-caps bg-surface-variant text-on-surface-variant border border-outline-variant">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-surface-variant text-on-surface-variant border border-outline-variant/60">
                             {res.resultType}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-data-mono text-data-mono text-outline">
+                        <td className="px-4 py-3 font-mono text-outline">
                           {res.actorName || res.category || '—'}
                         </td>
                         <td className="px-4 py-3">
                           {score !== null && score !== undefined ? (
                             <div className="flex items-center gap-2 w-32">
-                              <div className="flex-1 h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+                              <div className="flex-1 h-1.5 bg-surface-container-lowest rounded-full overflow-hidden">
                                 <div
                                   className={`h-full ${
                                     score >= 85
-                                      ? 'bg-[#10B981]'
+                                      ? 'bg-emerald-400'
                                       : score >= 70
                                       ? 'bg-primary'
-                                      : 'bg-[#F59E0B]'
+                                      : 'bg-amber-400'
                                   }`}
                                   style={{ width: `${score}%` }}
                                 ></div>
                               </div>
-                              <span className="font-data-mono text-data-mono text-[12px] font-bold text-on-surface">
+                              <span className="font-mono text-xs font-bold text-on-surface">
                                 {score.toFixed(0)}%
                               </span>
                             </div>
                           ) : (
-                            <span className="font-data-mono text-[11px] text-outline">INDICATOR</span>
+                            <span className="font-mono text-[11px] text-outline">IOC RECORD</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Link
                             href={getEntityLink(res)}
-                            className="btn-secondary px-2.5 py-1 text-[11px] font-label-caps rounded inline-flex items-center gap-1"
+                            className="btn-secondary px-2.5 py-1 text-[11px] font-mono font-semibold rounded-md inline-flex items-center gap-1"
                           >
-                            <span>Investigate</span>
-                            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                            <span>Inspect</span>
+                            <span className="material-symbols-outlined text-[13px]">open_in_new</span>
                           </Link>
                         </td>
                       </tr>

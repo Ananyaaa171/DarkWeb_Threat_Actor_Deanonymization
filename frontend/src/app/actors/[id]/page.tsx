@@ -11,7 +11,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
   id: '2bee3f4c-1923-40da-a2e9-78b9a1e9eb79',
   canonicalName: 'LockBit 3.0 Syndicate',
   threatCategory: 'RANSOMWARE GROUP',
-  primaryMotive: 'FINANCIAL',
+  primaryMotive: 'FINANCIAL EXTORTION',
   status: 'Active',
   overallConfidenceScore: 92.0,
   summary:
@@ -47,7 +47,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
   identifiers: [
     {
       id: 'id1',
-      type: 'BTC Wallet',
+      type: 'Bitcoin Wallet',
       value: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
       metadata: '{"tx_count": 48, "total_received_btc": 28.45}',
       isVerified: true,
@@ -55,7 +55,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
     },
     {
       id: 'id2',
-      type: 'XMR Wallet',
+      type: 'Monero Escrow Wallet',
       value: '44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A',
       metadata: '{"currency": "XMR", "escrow_type": "Primary"}',
       isVerified: true,
@@ -63,7 +63,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
     },
     {
       id: 'id3',
-      type: 'PGP Key',
+      type: 'PGP Cryptographic Key',
       value: '0x8B9C7A14F2D3E566 (Subkey: 0x4A72B5C1)',
       metadata: '{"algorithm": "RSA-4096", "verified": true}',
       isVerified: true,
@@ -71,7 +71,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
     },
     {
       id: 'id4',
-      type: 'Tox ID',
+      type: 'Secure Tox Contact ID',
       value: '5A6C7B8D9E0F1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B7C8D',
       metadata: '{"client": "qTox"}',
       isVerified: true,
@@ -81,7 +81,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
   infrastructure: [
     {
       id: 'inf1',
-      type: 'ONION_V3',
+      type: 'Tor Onion Service (v3)',
       value: 'http://lockbit7z275w3k3jshv5729fksu627ahskd8276f5skdl27f6sjd8.onion',
       ipAddress: '185.220.101.44',
       asn: 'AS200651 Flokinet Ltd',
@@ -91,7 +91,7 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
     },
     {
       id: 'inf2',
-      type: 'CLEARSIGNAL_MIRROR',
+      type: 'Clearnet Leak Mirror',
       value: 'https://lockbit-press-release.is',
       ipAddress: '194.26.29.118',
       asn: 'AS59796 Alexhost SRL',
@@ -130,11 +130,10 @@ const FALLBACK_ACTOR_DETAIL: ActorDetail = {
 
 export default function ActorProfilePage() {
   const params = useParams();
-  const router = useRouter();
   const actorId = params.id as string;
 
   const [actor, setActor] = useState<ActorDetail>(FALLBACK_ACTOR_DETAIL);
-  const [activeTab, setActiveTab] = useState<'IDENTIFIERS' | 'INFRASTRUCTURE' | 'PERSONAS' | 'TIMELINE'>('IDENTIFIERS');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'CONNECTIONS' | 'EVIDENCE' | 'TIMELINE'>('OVERVIEW');
   const [isLoading, setIsLoading] = useState(false);
   const [isLiveApi, setIsLiveApi] = useState(false);
 
@@ -162,334 +161,445 @@ export default function ActorProfilePage() {
     loadActor();
   }, [actorId]);
 
+  // Aggregate platforms & handles
+  const platformList = Array.from(new Set(actor.personas.map((p) => p.platform))).join(', ') || 'XSS.is, Ramp, Telegram';
+  const aliasesList = actor.personas.map((p) => `@${p.handle}`).join(', ') || '@bassterlord_xss, @basster_rampv2';
+  const liveInfraCount = actor.infrastructure.filter((i) => i.isLive).length;
+
   return (
     <div className="flex flex-col gap-6">
-      {/* Profile Header (Exact Stitch Card-Level-1) */}
-      <div className="card-panel rounded-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-outline-variant bg-surface-container">
-        <div className="flex items-center gap-5">
-          <div className="w-16 h-16 rounded bg-surface-container-high border border-outline flex items-center justify-center text-outline">
-            <span className="material-symbols-outlined text-[32px] text-rose-400">warning</span>
+      {/* 1. Identity Header */}
+      <div className="card-panel rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-outline-variant/60 bg-surface-container shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0 mt-0.5">
+            <span className="material-symbols-outlined text-[32px]">shield</span>
           </div>
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="font-display-lg text-display-lg font-bold text-on-surface m-0 leading-none">
+            <div className="flex flex-wrap items-center gap-2.5 mb-1">
+              <h1 className="text-2xl font-bold text-on-surface m-0 leading-tight">
                 {actor.canonicalName}
               </h1>
-              <span className="bg-surface-container-highest border border-outline-variant px-2 py-1 rounded text-outline font-label-caps text-[10px]">
-                {actor.threatCategory}
+              <span className="bg-rose-500/15 border border-rose-500/30 text-rose-300 px-2.5 py-0.5 rounded font-mono text-[10px] font-bold uppercase">
+                {actor.threatCategory.replace(/_/g, ' ')}
+              </span>
+              <span className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded font-mono text-[10px] font-semibold">
+                Status: {actor.status}
               </span>
             </div>
-            <div className="text-outline font-body-sm text-body-sm flex items-center gap-2">
-              <span>ID: ACT-{actor.id.slice(0, 8).toUpperCase()}</span>
+
+            {/* Aliases / Handles */}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-outline mb-2">
+              <span className="text-on-surface-variant font-semibold">Known Aliases:</span>
+              <span className="text-tertiary font-bold">{aliasesList}</span>
               <span>•</span>
-              <span>
-                First Seen: {formatIsoDate(actor.firstObservedAt)}
-              </span>
-              <span>•</span>
-              <span className="text-emerald-400 font-semibold">Status: {actor.status}</span>
-              <span>•</span>
-              <span className="text-primary font-mono text-[11px]">
-                {isLiveApi ? 'SUPABASE LIVE' : 'DEMO CACHE'}
-              </span>
+              <span>First Observed: {formatIsoDate(actor.firstObservedAt)}</span>
             </div>
+
+            {/* Short Narrative Description */}
+            <p className="text-xs text-on-surface-variant leading-relaxed max-w-3xl font-sans">
+              {actor.summary}
+            </p>
           </div>
         </div>
 
-        {/* Attribution Confidence Meter & Actions */}
-        <div className="flex flex-col items-end gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-            <div className="flex flex-col items-end">
-              <span className="font-label-caps text-label-caps text-outline mb-1 uppercase">
-                ATTRIBUTION CONFIDENCE
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="font-data-mono text-data-mono text-on-surface font-bold">
-                  {actor.overallConfidenceScore.toFixed(0)}%
-                </span>
-                <div className="w-24 h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 rounded-full"
-                    style={{ width: `${actor.overallConfidenceScore}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+        {/* Action Buttons */}
+        <div className="flex flex-col items-end gap-2.5 w-full md:w-auto shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-outline font-semibold">Connection Confidence:</span>
+            <span className="font-mono text-sm font-bold text-emerald-400">
+              {actor.overallConfidenceScore.toFixed(0)}%
+            </span>
+          </div>
 
+          <div className="flex items-center gap-2 w-full md:w-auto">
             <Link
               href={
                 actor.personas.length >= 2
                   ? `/linkage?source=${actor.personas[0].id}&target=${actor.personas[1].id}`
                   : `/linkage`
               }
-              className="btn-primary h-9 px-4 rounded font-label-caps text-label-caps flex items-center gap-2 text-xs"
+              className="btn-primary px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm"
             >
               <span className="material-symbols-outlined text-[16px]">account_tree</span>
-              <span>Investigate Personas</span>
+              <span>Analyze Connections</span>
+            </Link>
+            <Link
+              href={`/export?actorId=${actor.id}`}
+              className="btn-secondary px-3.5 py-2 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              <span>Export Dossier</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* Bento Grid Layout (Exact Stitch Bento) */}
-      <div className="grid grid-cols-12 gap-6">
-        {/* Left Column (Wide, 8 Cols) */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-          {/* Identifiers & Infrastructure Tabbed Panel */}
-          <div className="card-panel rounded-lg flex flex-col min-h-[380px] border-outline-variant bg-surface-container">
-            {/* Tabs Header */}
-            <div className="border-b border-outline-variant px-4 py-3 flex gap-6">
-              <button
-                onClick={() => setActiveTab('IDENTIFIERS')}
-                className={`font-label-caps text-label-caps pb-3 -mb-[13px] cursor-pointer transition-colors ${
-                  activeTab === 'IDENTIFIERS'
-                    ? 'text-primary border-b-2 border-primary font-bold'
-                    : 'text-outline hover:text-on-surface'
-                }`}
-              >
-                IDENTIFIERS ({actor.identifiers.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('INFRASTRUCTURE')}
-                className={`font-label-caps text-label-caps pb-3 -mb-[13px] cursor-pointer transition-colors ${
-                  activeTab === 'INFRASTRUCTURE'
-                    ? 'text-primary border-b-2 border-primary font-bold'
-                    : 'text-outline hover:text-on-surface'
-                }`}
-              >
-                INFRASTRUCTURE ({actor.infrastructure.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('TIMELINE')}
-                className={`font-label-caps text-label-caps pb-3 -mb-[13px] cursor-pointer transition-colors ${
-                  activeTab === 'TIMELINE'
-                    ? 'text-primary border-b-2 border-primary font-bold'
-                    : 'text-outline hover:text-on-surface'
-                }`}
-              >
-                ACTIVITY STREAM ({actor.recentTimeline.length})
-              </button>
+      {/* 2. Overview Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        {/* Platforms */}
+        <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
+          <span className="text-[10px] font-mono text-outline uppercase font-bold tracking-wider">
+            Platforms
+          </span>
+          <span className="text-xs font-bold text-on-surface font-mono truncate">
+            {platformList}
+          </span>
+          <span className="text-[10px] text-outline">Active darknet forums</span>
+        </div>
+
+        {/* Activity & Schedule */}
+        <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
+          <span className="text-[10px] font-mono text-outline uppercase font-bold tracking-wider">
+            Activity Schedule
+          </span>
+          <span className="text-xs font-bold text-amber-400 font-mono">
+            {actor.personas[0]?.activityTimezoneEstimated || 'UTC+3 (Business Hours)'}
+          </span>
+          <span className="text-[10px] text-outline">Last Seen: {formatIsoDate(actor.lastObservedAt)}</span>
+        </div>
+
+        {/* Related Identities */}
+        <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
+          <span className="text-[10px] font-mono text-outline uppercase font-bold tracking-wider">
+            Related Identities
+          </span>
+          <span className="text-xs font-bold text-tertiary font-mono">
+            {actor.personas.length} Online Personas
+          </span>
+          <span className="text-[10px] text-outline">Verified handle migrations</span>
+        </div>
+
+        {/* Connections */}
+        <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
+          <span className="text-[10px] font-mono text-outline uppercase font-bold tracking-wider">
+            Connections
+          </span>
+          <span className="text-xs font-bold text-emerald-400 font-mono">
+            Strong Connection (≥ 89%)
+          </span>
+          <span className="text-[10px] text-outline">Multi-signal correlation</span>
+        </div>
+
+        {/* Infrastructure */}
+        <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
+          <span className="text-[10px] font-mono text-outline uppercase font-bold tracking-wider">
+            Infrastructure
+          </span>
+          <span className="text-xs font-bold text-cyan-400 font-mono">
+            {actor.infrastructure.length} Hosts ({liveInfraCount} Live)
+          </span>
+          <span className="text-[10px] text-outline">Tor Onion mirrors &amp; servers</span>
+        </div>
+      </div>
+
+      {/* 3. Main Investigation Tabs */}
+      <div className="card-panel rounded-xl flex flex-col border-outline-variant/60 bg-surface-container shadow-sm min-h-[480px]">
+        {/* Navigation Tabs Header */}
+        <div className="border-b border-outline-variant/40 px-6 py-3.5 flex gap-8 font-mono text-xs font-semibold overflow-x-auto">
+          {[
+            { id: 'OVERVIEW', label: 'OVERVIEW' },
+            { id: 'CONNECTIONS', label: `CONNECTIONS (${actor.personas.length})` },
+            { id: 'EVIDENCE', label: `EVIDENCE (${actor.identifiers.length + actor.infrastructure.length})` },
+            { id: 'TIMELINE', label: `TIMELINE & ACTIVITY (${actor.recentTimeline.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`pb-3 -mb-[15px] cursor-pointer transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'text-primary border-b-2 border-primary font-bold'
+                  : 'text-outline hover:text-on-surface'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab 1: OVERVIEW */}
+        {activeTab === 'OVERVIEW' && (
+          <div className="p-6 flex flex-col gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Profile Narrative & Investigation Scope */}
+              <div className="flex flex-col gap-4">
+                <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                  Threat Profile &amp; Modus Operandi
+                </h3>
+                <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-2 text-xs text-on-surface-variant leading-relaxed font-sans">
+                  <p>
+                    <strong className="text-on-surface">{actor.canonicalName}</strong> operates primarily for{' '}
+                    <span className="text-primary font-bold">{actor.primaryMotive}</span>. Investigations confirm that operational actor{' '}
+                    <span className="text-tertiary font-mono font-bold">@bassterlord_xss</span> registered secondary handles across darknet boards to distribute affiliate RaaS builds.
+                  </p>
+                  <p>
+                    Financial transactions are routed through Monero escrow deposits and confirmed Bitcoin wallets. All activity coincides with Eastern European business hours (UTC+3).
+                  </p>
+                </div>
+
+                {/* Key Quick Facts */}
+                <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 font-mono text-xs space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-outline">Primary Category:</span>
+                    <span className="text-on-surface font-bold">{actor.threatCategory}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-outline">Tracked Identifiers:</span>
+                    <span className="text-on-surface font-bold">{actor.identifiers.length} Items</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-outline">Hosting Infrastructure:</span>
+                    <span className="text-on-surface font-bold">{actor.infrastructure.length} Endpoints</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Related Online Personas Grid */}
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                    Online Personas
+                  </h3>
+                  <Link
+                    href={`/graph/${actor.id}`}
+                    className="text-primary hover:underline font-mono text-xs font-semibold flex items-center gap-1"
+                  >
+                    <span>View Graph Map</span>
+                    <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {actor.personas.map((p) => (
+                    <div
+                      key={p.id}
+                      className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+                          <span className="material-symbols-outlined">person</span>
+                        </div>
+                        <div>
+                          <div className="font-mono text-xs font-bold text-tertiary">
+                            @{p.handle}
+                          </div>
+                          <div className="text-[11px] text-outline">{p.platform}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 font-mono text-xs">
+                        <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/30 text-[10px] font-bold">
+                          {p.status}
+                        </span>
+                        <Link
+                          href={`/linkage?source=${p.id}`}
+                          className="btn-secondary px-2.5 py-1 text-[11px] font-semibold"
+                        >
+                          Analyze
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: 4. CONNECTIONS */}
+        {activeTab === 'CONNECTIONS' && (
+          <div className="p-6 flex flex-col gap-4">
+            <div>
+              <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                Correlated Online Personas &amp; Connections
+              </h3>
+              <p className="text-xs text-outline mt-0.5">
+                Evaluated relationships supported by multiple forensic signals
+              </p>
             </div>
 
-            {/* Tab 1: Identifiers Table */}
-            {activeTab === 'IDENTIFIERS' && (
-              <div className="flex-1 overflow-auto p-4">
-                <table className="w-full text-left border-collapse font-body-sm">
-                  <thead>
-                    <tr className="border-b border-outline-variant bg-surface-container-low">
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">TYPE</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">VALUE</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">SEEN</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3 w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="font-data-mono text-data-mono divide-y divide-outline-variant/30">
-                    {actor.identifiers.map((id) => (
-                      <tr key={id.id} className="interactive-row">
-                        <td className="py-3 px-3 text-on-surface font-semibold">{id.type}</td>
-                        <td className="py-3 px-3 text-tertiary break-all">{id.value}</td>
-                        <td className="py-3 px-3 text-outline text-[12px] whitespace-nowrap">
-                          {formatIsoDate(id.firstSeenAt)}
-                        </td>
-                        <td className="py-3 px-3 text-center">
-                          <span
-                            onClick={() => navigator.clipboard.writeText(id.value)}
-                            title="Copy Indicator"
-                            className="material-symbols-outlined text-[16px] text-outline cursor-pointer hover:text-primary"
-                          >
-                            content_copy
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Tab 2: Infrastructure Table */}
-            {activeTab === 'INFRASTRUCTURE' && (
-              <div className="flex-1 overflow-auto p-4">
-                <table className="w-full text-left border-collapse font-body-sm">
-                  <thead>
-                    <tr className="border-b border-outline-variant bg-surface-container-low">
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">TYPE</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">HOST / ONION</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">BACKEND IP / ASN</th>
-                      <th className="font-label-caps text-label-caps text-outline py-2 px-3">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="font-data-mono text-data-mono divide-y divide-outline-variant/30">
-                    {actor.infrastructure.map((inf) => (
-                      <tr key={inf.id} className="interactive-row">
-                        <td className="py-3 px-3 text-on-surface font-semibold">{inf.type}</td>
-                        <td className="py-3 px-3 text-primary break-all">{inf.value}</td>
-                        <td className="py-3 px-3 text-outline text-[12px]">
-                          <div>{inf.ipAddress || 'Hidden Tor Service'}</div>
-                          <div className="text-[10px] text-on-surface-variant">{inf.asn || 'AS200651'}</div>
-                        </td>
-                        <td className="py-3 px-3">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-label-caps ${
-                              inf.isLive
-                                ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-rose-950/60 text-rose-300 border border-rose-500/30'
-                            }`}
-                          >
-                            {inf.isLive ? 'ONLINE' : 'OFFLINE'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Tab 3: Timeline Activity */}
-            {activeTab === 'TIMELINE' && (
-              <div className="flex-1 overflow-auto p-4 space-y-3 font-body-sm">
-                {actor.recentTimeline.map((tl) => (
+            <div className="grid grid-cols-1 gap-4">
+              {actor.personas.map((persona, index) => {
+                const partnerPersona = actor.personas[(index + 1) % actor.personas.length];
+                return (
                   <div
-                    key={tl.id}
-                    className="p-3 rounded bg-surface-container-low border border-outline-variant/50 flex flex-col gap-1"
+                    key={persona.id}
+                    className="p-5 rounded-xl bg-surface-container-low border border-outline-variant/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                   >
-                    <div className="flex items-center justify-between font-data-mono text-[11px]">
-                      <span className="text-tertiary">@{tl.personaHandle}</span>
-                      <span className="text-outline">
-                        {formatIsoDate(tl.eventTimestamp)}
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                        <span className="material-symbols-outlined text-[24px]">link</span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono text-sm font-bold text-tertiary">
+                            @{persona.handle}
+                          </span>
+                          <span className="material-symbols-outlined text-outline text-[16px]">
+                            sync_alt
+                          </span>
+                          <span className="font-mono text-sm font-bold text-primary">
+                            @{partnerPersona.handle}
+                          </span>
+                        </div>
+                        <p className="text-xs text-on-surface-variant font-sans leading-relaxed">
+                          Exact cryptographic PGP subkey match (0x4A72B5C1) and aligned Russian/English forum writing syntax.
+                        </p>
+                        <div className="flex items-center gap-2 mt-2 font-mono text-[11px] text-outline">
+                          <span className="text-emerald-400 font-bold">4 Supporting Evidence Items</span>
+                          <span>•</span>
+                          <span>Platforms: {persona.platform} &amp; {partnerPersona.platform}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:items-end gap-2 w-full md:w-auto shrink-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[11px] text-outline">Connection Confidence:</span>
+                        <span className="font-mono text-base font-bold text-emerald-400">89.5%</span>
+                      </div>
+                      <Link
+                        href={`/linkage?source=${persona.id}&target=${partnerPersona.id}`}
+                        className="btn-primary px-3.5 py-1.5 text-xs font-semibold rounded-lg shadow-sm"
+                      >
+                        Inspect Connection Analysis →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: 5. EVIDENCE */}
+        {activeTab === 'EVIDENCE' && (
+          <div className="p-6 flex flex-col gap-6">
+            <div>
+              <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                Supporting Evidence &amp; Observed Indicators
+              </h3>
+              <p className="text-xs text-outline mt-0.5">
+                Plain-English breakdown of verified forensic signals, financial wallets, and network hosts
+              </p>
+            </div>
+
+            {/* Plain English Evidence Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Payment & Wallets */}
+              <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-tertiary font-mono text-xs font-bold">
+                  <span className="material-symbols-outlined text-[18px]">currency_bitcoin</span>
+                  <span>Payment &amp; Financial Wallets</span>
+                </div>
+                <div className="space-y-2 text-xs font-mono">
+                  {actor.identifiers
+                    .filter((id) => id.type.includes('Wallet'))
+                    .map((id) => (
+                      <div key={id.id} className="p-2.5 rounded-lg bg-surface-container border border-outline-variant/30">
+                        <div className="text-outline text-[11px] uppercase font-semibold">{id.type}</div>
+                        <div className="text-tertiary select-all break-all mt-0.5 font-bold">{id.value}</div>
+                        <div className="text-[10px] text-outline mt-1">First Seen: {formatIsoDate(id.firstSeenAt)}</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Cryptographic Keys */}
+              <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-primary font-mono text-xs font-bold">
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                  <span>Cryptographic Keys &amp; Contact Handles</span>
+                </div>
+                <div className="space-y-2 text-xs font-mono">
+                  {actor.identifiers
+                    .filter((id) => !id.type.includes('Wallet'))
+                    .map((id) => (
+                      <div key={id.id} className="p-2.5 rounded-lg bg-surface-container border border-outline-variant/30">
+                        <div className="text-outline text-[11px] uppercase font-semibold">{id.type}</div>
+                        <div className="text-primary select-all break-all mt-0.5 font-bold">{id.value}</div>
+                        <div className="text-[10px] text-outline mt-1">First Seen: {formatIsoDate(id.firstSeenAt)}</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Hosting & Tor Mirrors */}
+              <div className="col-span-1 md:col-span-2 p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-bold">
+                  <span className="material-symbols-outlined text-[18px]">dns</span>
+                  <span>Hosting Infrastructure &amp; Tor Onion Mirrors</span>
+                </div>
+                <div className="space-y-2 text-xs font-mono">
+                  {actor.infrastructure.map((inf) => (
+                    <div key={inf.id} className="p-2.5 rounded-lg bg-surface-container border border-outline-variant/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <div className="text-outline text-[11px] uppercase font-semibold">{inf.type.replace(/_/g, ' ')}</div>
+                        <div className="text-on-surface font-bold break-all select-all">{inf.value}</div>
+                        <div className="text-[10px] text-outline mt-0.5">IP Address: {inf.ipAddress} • {inf.asn}</div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        inf.isLive ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                      }`}>
+                        {inf.isLive ? 'ONLINE' : 'OFFLINE'}
                       </span>
                     </div>
-                    <div className="font-semibold text-on-surface text-[12px]">{tl.title}</div>
-                    <p className="text-outline text-[11px]">{tl.description}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Advanced Details Toggle */}
+            <details className="pt-2 border-t border-outline-variant/40 text-[11px] font-mono text-outline cursor-pointer">
+              <summary className="font-semibold text-primary hover:underline">
+                Advanced Details &amp; Raw Identifier Hashes
+              </summary>
+              <div className="mt-2.5 p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/40 space-y-2 text-[11px] font-mono text-on-surface-variant">
+                <div>Case UUID: {actor.id}</div>
+                <div>Primary Motive Code: {actor.primaryMotive}</div>
+                <div>Confidence Metric: {actor.overallConfidenceScore.toFixed(4)}</div>
+                {actor.infrastructure.map((inf) => (
+                  <div key={inf.id} className="truncate">
+                    SSL Cert ({inf.type}): {inf.sslCertFingerprint || 'N/A'}
                   </div>
                 ))}
               </div>
-            )}
+            </details>
           </div>
+        )}
 
-          {/* Associated Personas (Stitch Cards) */}
-          <div className="card-panel rounded-lg flex flex-col p-5 border-outline-variant bg-surface-container">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-title-sm text-title-sm font-bold text-on-surface">
-                Associated Forum Personas
+        {/* Tab 4: 6. TIMELINE */}
+        {activeTab === 'TIMELINE' && (
+          <div className="p-6 flex flex-col gap-4">
+            <div>
+              <h3 className="font-mono text-xs font-bold text-on-surface uppercase tracking-wider">
+                Chronological Activity Stream
               </h3>
-              <Link
-                href={`/graph/${actor.id}`}
-                className="text-primary hover:text-primary-fixed transition-colors font-label-caps text-label-caps flex items-center gap-1"
-              >
-                <span>VIEW TOPOLOGICAL GRAPH</span>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
+              <p className="text-xs text-outline mt-0.5">
+                Timeline of forum publications, account migrations, and cryptocurrency events
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {actor.personas.map((p) => (
+            <div className="space-y-3">
+              {actor.recentTimeline.map((tl) => (
                 <div
-                  key={p.id}
-                  className="bg-surface-dim border border-outline-variant rounded-lg p-4 flex flex-col gap-3 hover:bg-surface-variant transition-colors"
+                  key={tl.id}
+                  className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 flex flex-col gap-1.5"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-surface-container-high flex items-center justify-center text-primary">
-                        <span className="material-symbols-outlined">person</span>
-                      </div>
-                      <div>
-                        <div className="font-bold text-on-surface text-body-md font-mono text-tertiary">
-                          @{p.handle}
-                        </div>
-                        <div className="text-outline text-[11px] font-label-caps">{p.platform}</div>
-                      </div>
-                    </div>
-                    <span className="px-2 py-0.5 rounded bg-surface-container text-primary border border-outline-variant font-label-caps text-[9px]">
-                      {p.status}
-                    </span>
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <span className="text-tertiary font-bold">@{tl.personaHandle}</span>
+                    <span className="text-outline">{formatIsoDate(tl.eventTimestamp)}</span>
                   </div>
-
-                  <div className="flex items-center justify-between font-label-caps text-[11px] text-outline pt-2 border-t border-outline-variant/40">
-                    <span>Reputation: {p.reputationScore}%</span>
-                    <span>{p.activityTimezoneEstimated || 'UTC+3 (MSK)'}</span>
+                  <div className="font-bold text-on-surface text-sm font-sans">{tl.title}</div>
+                  <p className="text-xs text-on-surface-variant leading-relaxed font-sans">{tl.description}</p>
+                  <div className="flex items-center justify-between pt-2 border-t border-outline-variant/30 text-[11px] font-mono text-outline">
+                    <span>Source: {tl.sourceReference}</span>
+                    <span className="text-primary font-bold">{tl.severity}</span>
                   </div>
-
-                  <Link
-                    href={`/linkage?source=${p.id}`}
-                    className="btn-secondary w-full justify-center py-1.5 text-xs font-label-caps mt-1"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">psychology</span>
-                    <span>Cross-Attribution AI Linkage</span>
-                  </Link>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-
-        {/* Right Column (4 Cols): Summary & Quick Actions */}
-        <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-          {/* Actor Intelligence Summary */}
-          <div className="card-panel rounded-lg p-5 flex flex-col gap-3 border-outline-variant bg-surface-container">
-            <h3 className="font-label-caps text-label-caps font-bold text-on-surface uppercase border-b border-outline-variant pb-2">
-              Intelligence Dossier Brief
-            </h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-              {actor.summary}
-            </p>
-            <div className="pt-3 border-t border-outline-variant flex flex-col gap-2 font-label-caps text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-outline">OPERATIONAL MOTIVE:</span>
-                <span className="text-primary font-bold">{actor.primaryMotive}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-outline">LINKED PERSONAS:</span>
-                <span className="text-tertiary font-bold">{actor.personas.length} Handles</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-outline">IOC COUNT:</span>
-                <span className="text-on-surface font-bold">
-                  {actor.identifiers.length + actor.infrastructure.length} Indicators
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions Panel */}
-          <div className="card-panel rounded-lg p-5 flex flex-col gap-3 border-outline-variant bg-surface-container">
-            <h3 className="font-label-caps text-label-caps font-bold text-on-surface uppercase border-b border-outline-variant pb-2">
-              Forensic Navigation
-            </h3>
-            <div className="flex flex-col gap-2">
-              <Link
-                href={`/graph/${actor.id}`}
-                className="btn-secondary w-full justify-between px-3 py-2 text-xs font-label-caps"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">hub</span>
-                  <span>Topological Graph</span>
-                </div>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
-              <Link
-                href={`/timeline/${actor.id}`}
-                className="btn-secondary w-full justify-between px-3 py-2 text-xs font-label-caps"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">timeline</span>
-                  <span>Chronological Stream</span>
-                </div>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
-              <Link
-                href={`/export?actorId=${actor.id}`}
-                className="btn-primary w-full justify-between px-3 py-2 text-xs font-label-caps"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">download</span>
-                  <span>Export Dossier (PDF/STIX)</span>
-                </div>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

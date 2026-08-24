@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/services/api';
 import { TimelineEvent, ActorSummary } from '@/types';
-import { formatIsoDate, formatIsoTime } from '@/utils/formatters';
 
 const FALLBACK_TIMELINE_EVENTS: TimelineEvent[] = [
   {
@@ -14,9 +13,9 @@ const FALLBACK_TIMELINE_EVENTS: TimelineEvent[] = [
     personaHandle: 'bassterlord_xss',
     actorCanonicalName: 'LockBit 3.0 Syndicate',
     eventType: 'FORUM_POST',
-    title: 'Affiliate Operational Handbook v3 Released on XSS.is',
+    title: 'Persona Observed on Platform (XSS.is)',
     description:
-      'Detailed revenue split terms (80/20) and explicit prohibition on targeting CIS critical infrastructure published in exclusive vendor section.',
+      'Published affiliate revenue split terms (80/20) and operational rulebook in exclusive darknet vendor section.',
     sourceReference: 'XSS.is Forum #412',
     eventTimestamp: '2026-08-22T14:22:05Z',
     severity: 'HIGH',
@@ -27,9 +26,9 @@ const FALLBACK_TIMELINE_EVENTS: TimelineEvent[] = [
     personaHandle: 'basster_rampv2',
     actorCanonicalName: 'LockBit 3.0 Syndicate',
     eventType: 'PERSONA_MIGRATION',
-    title: 'Account Registration on Ramp Forum with Matching PGP Subkey',
+    title: 'Similar Identifier Detected (PGP Subkey Match)',
     description:
-      'New handle established referencing previous affiliate work with identical subkey ID 0x4A72B5C1.',
+      'Persona registered new profile on Ramp forum publishing matching cryptographic PGP subkey ID 0x4A72B5C1.',
     sourceReference: 'Ramp User Profile #883',
     eventTimestamp: '2026-08-21T09:15:30Z',
     severity: 'HIGH',
@@ -40,9 +39,9 @@ const FALLBACK_TIMELINE_EVENTS: TimelineEvent[] = [
     personaHandle: 'bassterlord_xss',
     actorCanonicalName: 'LockBit 3.0 Syndicate',
     eventType: 'WALLET_ANNOUNCEMENT',
-    title: 'New Bitcoin Escrow Deposit Address Configured',
+    title: 'Shared Financial Identifier Observed (Bitcoin Wallet)',
     description:
-      'Announced updated multi-sig operational wallet bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh for affiliate payout verification.',
+      'Announced updated operational Bitcoin deposit wallet bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh for partner verification.',
     sourceReference: 'Exploit.in Escrow Channel',
     eventTimestamp: '2026-08-19T17:40:12Z',
     severity: 'CRITICAL',
@@ -53,12 +52,38 @@ const FALLBACK_TIMELINE_EVENTS: TimelineEvent[] = [
     personaHandle: 'bassterlord_xss',
     actorCanonicalName: 'LockBit 3.0 Syndicate',
     eventType: 'INFRASTRUCTURE_DEPLOYMENT',
-    title: 'Tor Onion Negotiation Mirror Brought Online',
+    title: 'Related Infrastructure Identified (Tor Onion Mirror)',
     description:
-      'New Onion v3 portal live on AS200651 Flokinet Ltd infrastructure providing redundant leak access.',
-    sourceReference: 'Tor Network Sensor #14',
+      'Active Tor Onion v3 negotiation mirror brought online on AS200651 Flokinet Ltd infrastructure providing redundant leak portal access.',
+    sourceReference: 'Tor Network Sensor Scan #14',
     eventTimestamp: '2026-08-16T11:05:00Z',
     severity: 'MEDIUM',
+  },
+  {
+    id: 'ev5',
+    personaId: 'p1',
+    personaHandle: 'bassterlord_xss',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'FORUM_POST',
+    title: 'Writing Style Comparison Completed',
+    description:
+      'Linguistic analysis identified 87% similarity in vocabulary, bracket opening syntax, and punctuation cadence across both forum personas.',
+    sourceReference: 'Writing Style Comparison Engine',
+    eventTimestamp: '2026-08-15T08:30:00Z',
+    severity: 'INFO',
+  },
+  {
+    id: 'ev6',
+    personaId: 'p2',
+    personaHandle: 'basster_rampv2',
+    actorCanonicalName: 'LockBit 3.0 Syndicate',
+    eventType: 'PERSONA_MIGRATION',
+    title: 'Strong Connection Detected (89.5% Confidence)',
+    description:
+      'Deterministic multi-signal connection established between @bassterlord_xss and @basster_rampv2 combining cryptographic keys and writing patterns.',
+    sourceReference: 'Connection Analysis Engine',
+    eventTimestamp: '2026-08-14T10:00:00Z',
+    severity: 'HIGH',
   },
 ];
 
@@ -87,6 +112,39 @@ const FALLBACK_ACTORS: ActorSummary[] = [
   },
 ];
 
+function formatEventDate(isoString: string): { monthDay: string; yearTime: string } {
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return { monthDay: 'Recent', yearTime: '' };
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const day = d.getDate();
+    const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return {
+      monthDay: `${month} ${day}`,
+      yearTime: `${d.getFullYear()} • ${time} UTC`,
+    };
+  } catch {
+    return { monthDay: 'Recent', yearTime: '' };
+  }
+}
+
+function getPlainEventCategory(eventType: string): string {
+  switch (eventType) {
+    case 'FORUM_POST':
+      return 'Forum Activity';
+    case 'PERSONA_MIGRATION':
+      return 'Identity Movement';
+    case 'WALLET_ANNOUNCEMENT':
+    case 'WALLET_PAYMENT':
+      return 'Financial Identifier';
+    case 'INFRASTRUCTURE_DEPLOYMENT':
+    case 'INFRA_ONLINE':
+      return 'Technical Infrastructure';
+    default:
+      return 'Investigation Finding';
+  }
+}
+
 export default function TimelinePage() {
   const params = useParams();
   const router = useRouter();
@@ -103,13 +161,11 @@ export default function TimelinePage() {
     async function loadTimeline() {
       try {
         setIsLoading(true);
-        // Load actors list for filter selector
         const actorsRes = await api.getActors();
         if (actorsRes && actorsRes.content && actorsRes.content.length > 0) {
           setActors(actorsRes.content);
         }
 
-        // Load timeline for selected actor
         const timelineRes = await api.getActorTimeline(selectedActorId);
         if (timelineRes && timelineRes.content && timelineRes.content.length > 0) {
           setEvents(timelineRes.content);
@@ -137,60 +193,52 @@ export default function TimelinePage() {
     return false;
   });
 
-  const getSeverityBadge = (severity: string) => {
-    switch (severity?.toUpperCase()) {
-      case 'CRITICAL':
-      case 'HIGH':
-        return {
-          bg: 'bg-error',
-          ring: 'shadow-[0_0_8px_rgba(255,180,171,0.5)]',
-          badge: 'bg-rose-950/60 text-rose-300 border border-rose-500/30',
-        };
-      case 'MEDIUM':
-        return {
-          bg: 'bg-tertiary-container',
-          ring: 'shadow-[0_0_8px_rgba(223,116,18,0.5)]',
-          badge: 'bg-amber-950/60 text-amber-300 border border-amber-500/30',
-        };
-      default:
-        return {
-          bg: 'bg-primary',
-          ring: 'shadow-[0_0_8px_rgba(173,198,255,0.5)]',
-          badge: 'bg-blue-950/60 text-blue-300 border border-blue-500/30',
-        };
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6">
-      {/* Page Header & Filter Bar (Exact Stitch Timeline Header) */}
+      {/* Page Header & Filter Bar */}
       <div className="flex flex-col gap-4 sticky top-0 bg-surface/95 backdrop-blur-md z-30 pb-4 border-b border-outline-variant/40 pt-2 -mt-2">
-        <div className="flex items-end justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <h1 className="font-headline-md text-headline-md font-bold text-on-surface tracking-tight">
-              Intelligence Timeline
+            <div className="flex items-center gap-2 text-on-surface-variant mb-1 font-mono text-xs">
+              <span className="tracking-wider text-primary font-bold">
+                INVESTIGATION TIMELINE
+              </span>
+              <span className="text-outline">/</span>
+              <span className={`font-semibold ${isLiveApi ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {isLiveApi ? 'Live Activity Feed' : 'Reference Case Study'}
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-on-surface tracking-tight">
+              Investigation Timeline
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Chronological synthesis of actor activities, persona migrations, and cryptographic events.
+            <p className="text-xs text-on-surface-variant mt-1 leading-relaxed font-sans">
+              Chronological sequence of darknet observations, identifier discoveries, and connection milestones
             </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href="/export"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container hover:bg-surface-variant transition-colors text-body-sm font-body-sm text-on-surface"
+              href="/linkage"
+              className="btn-primary px-3 py-1.5 rounded-lg text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm"
             >
-              <span className="material-symbols-outlined text-[18px]">download</span>
+              <span className="material-symbols-outlined text-[16px]">psychology</span>
+              <span>Connection Analysis</span>
+            </Link>
+            <Link
+              href="/export"
+              className="btn-secondary px-3 py-1.5 rounded-lg text-xs font-mono font-medium flex items-center gap-1.5"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
               <span>Export Stream</span>
             </Link>
           </div>
         </div>
 
         {/* Filter Bar */}
-        <div className="flex flex-wrap items-center gap-3 bg-surface-container-low p-2 rounded-lg border border-outline-variant/50 font-body-sm">
+        <div className="flex flex-wrap items-center gap-3 bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/50">
           {/* Actor Selector */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded border border-outline-variant/30">
-            <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
-              group
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-lg border border-outline-variant/60">
+            <span className="material-symbols-outlined text-[16px] text-primary">
+              groups
             </span>
             <select
               value={selectedActorId}
@@ -198,7 +246,7 @@ export default function TimelinePage() {
                 setSelectedActorId(e.target.value);
                 router.push(`/timeline/${e.target.value}`);
               }}
-              className="bg-transparent text-on-surface font-label-caps text-[11px] outline-none cursor-pointer"
+              className="bg-transparent text-on-surface font-mono text-xs font-semibold outline-none cursor-pointer"
             >
               {actors.map((a) => (
                 <option key={a.id} value={a.id} className="bg-surface-container">
@@ -208,97 +256,113 @@ export default function TimelinePage() {
             </select>
           </div>
 
-          <div className="w-px h-4 bg-outline-variant/50 mx-1"></div>
+          <div className="w-px h-4 bg-outline-variant/50 mx-1 hidden sm:block" />
 
           {/* Severity Filter */}
-          <div className="flex items-center gap-1 bg-surface rounded border border-outline-variant/30 p-0.5">
+          <div className="flex items-center gap-1 bg-surface-container rounded-lg border border-outline-variant/50 p-0.5">
             {[
-              { label: 'All', value: 'ALL' },
-              { label: 'High', value: 'HIGH', dot: 'bg-error' },
-              { label: 'Mid', value: 'MID', dot: 'bg-tertiary-container' },
-              { label: 'Low', value: 'LOW', dot: 'bg-primary' },
+              { label: 'All Events', value: 'ALL' },
+              { label: 'High Priority', value: 'HIGH', dot: 'bg-rose-400' },
+              { label: 'Medium', value: 'MID', dot: 'bg-amber-400' },
+              { label: 'Informational', value: 'LOW', dot: 'bg-primary' },
             ].map((sev) => (
               <button
                 key={sev.value}
                 onClick={() => setSelectedSeverity(sev.value)}
-                className={`px-3 py-1 rounded text-[12px] font-label-caps transition-colors flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
                   selectedSeverity === sev.value
-                    ? 'bg-surface-variant text-on-surface font-bold'
+                    ? 'bg-primary/20 text-primary border border-primary/30 font-bold'
                     : 'text-on-surface-variant hover:text-on-surface'
                 }`}
               >
-                {sev.dot && <div className={`w-2 h-2 rounded-full ${sev.dot}`}></div>}
+                {sev.dot && <div className={`w-2 h-2 rounded-full ${sev.dot}`} />}
                 <span>{sev.label}</span>
               </button>
             ))}
           </div>
 
-          <div className="flex-1"></div>
+          <div className="flex-1" />
 
-          <div className="font-label-caps text-[10px] text-outline font-bold">
-            {filteredEvents.length} EVENTS CHRONICLED •{' '}
-            <span className="text-primary">{isLiveApi ? 'LIVE TIMELINE' : 'DEMO STREAM'}</span>
+          <div className="font-mono text-xs text-outline font-semibold">
+            {filteredEvents.length} Events Logged
           </div>
         </div>
       </div>
 
-      {/* Timeline Layout (Exact Stitch Vertical Thread) */}
-      <div className="relative max-w-5xl mx-auto w-full pb-20 mt-4">
-        {/* Vertical Thread Line */}
-        <div className="absolute left-[140px] md:left-[180px] top-4 bottom-0 w-[2px] bg-outline-variant/30 z-0"></div>
+      {/* Clean Timeline Layout */}
+      <div className="relative max-w-4xl mx-auto w-full pb-20 mt-2">
+        {/* Vertical Center/Left Thread Line */}
+        <div className="absolute left-[105px] md:left-[130px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-primary via-outline-variant/80 to-transparent z-0" />
 
         {/* Timeline Entries */}
-        <div className="flex flex-col gap-8 relative z-10">
+        <div className="flex flex-col gap-5 relative z-10">
           {filteredEvents.map((ev, index) => {
-            const dateStr = formatIsoDate(ev.eventTimestamp);
-            const timeStr = formatIsoTime(ev.eventTimestamp);
-            const sevMeta = getSeverityBadge(ev.severity);
+            const { monthDay, yearTime } = formatEventDate(ev.eventTimestamp);
+            const category = getPlainEventCategory(ev.eventType);
 
             return (
-              <div key={ev.id || index} className="flex gap-4 group">
-                {/* Timestamp & Context */}
-                <div className="w-[120px] md:w-[160px] flex flex-col items-end text-right pt-1 shrink-0">
-                  <span className="font-data-mono text-on-surface text-[13px] font-bold">
-                    {timeStr}Z
+              <div key={ev.id || index} className="flex items-start gap-4 group">
+                {/* 1. Clear Date Block on Left */}
+                <div className="w-[90px] md:w-[115px] flex flex-col items-end text-right pt-2 shrink-0">
+                  <span className="font-mono text-on-surface text-sm md:text-base font-bold tracking-tight">
+                    {monthDay}
                   </span>
-                  <span className="font-label-caps text-[10px] text-on-surface-variant mt-0.5 uppercase">
-                    {dateStr}
+                  <span className="font-mono text-[10px] text-outline mt-0.5">
+                    {yearTime}
                   </span>
-                  <span className="font-label-caps text-[9px] text-tertiary mt-0.5">
-                    @{ev.personaHandle || 'actor'}
-                  </span>
+                  {ev.personaHandle && (
+                    <span className="font-mono text-[10px] text-tertiary mt-1 font-semibold truncate max-w-[100px]">
+                      @{ev.personaHandle}
+                    </span>
+                  )}
                 </div>
 
-                {/* Indicator Circle */}
-                <div className="w-8 flex justify-center pt-2 relative shrink-0">
+                {/* 2. Timeline Step Node */}
+                <div className="w-6 flex justify-center pt-3 relative shrink-0">
                   <div
-                    className={`w-3 h-3 rounded-full ${sevMeta.bg} ring-4 ring-surface ${sevMeta.ring} z-10 transition-transform group-hover:scale-125`}
-                  ></div>
+                    className={`w-3.5 h-3.5 rounded-full ring-4 ring-surface z-10 transition-transform group-hover:scale-125 shadow-sm ${
+                      ev.severity === 'CRITICAL' || ev.severity === 'HIGH'
+                        ? 'bg-rose-400 ring-rose-400/20'
+                        : ev.severity === 'MEDIUM'
+                        ? 'bg-amber-400 ring-amber-400/20'
+                        : 'bg-primary ring-primary/20'
+                    }`}
+                  />
                 </div>
 
-                {/* Content Card (Stitch Card) */}
-                <div className="flex-1 card-panel rounded-xl p-4 shadow-sm hover:border-outline transition-all cursor-pointer bg-surface-container">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-on-surface text-body-md font-sans">
-                        {ev.title}
-                      </span>
-                    </div>
-                    <span className={`px-2 py-0.5 rounded font-label-caps text-[9px] ${sevMeta.badge}`}>
-                      {ev.severity || 'INFO'}
+                {/* 3. Event Card */}
+                <div className="flex-1 card-panel rounded-xl p-4 shadow-sm hover:border-primary/50 transition-all bg-surface-container border-outline-variant/60">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                    <h3 className="font-bold text-on-surface text-sm font-sans leading-tight">
+                      {ev.title}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold w-fit uppercase bg-surface-container-high text-outline border border-outline-variant/40">
+                      {category}
                     </span>
                   </div>
 
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed mb-3">
+                  <p className="text-xs text-on-surface-variant leading-relaxed font-sans mb-3">
                     {ev.description}
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-outline-variant/40 font-label-caps text-[10px] text-outline">
+                  <div className="flex items-center justify-between pt-2 border-t border-outline-variant/40 font-mono text-[11px] text-outline">
                     <div className="flex items-center gap-1.5">
                       <span className="material-symbols-outlined text-[14px]">source</span>
-                      <span>Source: {ev.sourceReference || 'Darknet Sensor Stream'}</span>
+                      <span>Source: {ev.sourceReference || 'Darknet Monitoring Feed'}</span>
                     </div>
-                    <span className="text-primary font-mono">{ev.eventType}</span>
+                    {ev.severity && (
+                      <span
+                        className={`text-[10px] font-bold ${
+                          ev.severity === 'CRITICAL' || ev.severity === 'HIGH'
+                            ? 'text-rose-400'
+                            : ev.severity === 'MEDIUM'
+                            ? 'text-amber-400'
+                            : 'text-primary'
+                        }`}
+                      >
+                        {ev.severity} PRIORITY
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

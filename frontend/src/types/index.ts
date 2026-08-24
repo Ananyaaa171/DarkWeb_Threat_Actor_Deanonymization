@@ -119,7 +119,7 @@ export interface SearchResult {
 export interface GraphNode {
   id: string;
   label: string;
-  type: 'ACTOR' | 'PERSONA' | 'IDENTIFIER' | 'INFRASTRUCTURE';
+  type: 'ACTOR' | 'PERSONA' | 'IDENTIFIER' | 'INFRASTRUCTURE' | 'EVIDENCE';
   subType: string | null;
   data: Record<string, any>;
 }
